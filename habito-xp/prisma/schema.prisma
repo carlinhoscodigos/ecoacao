@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 1. USUÁRIOS
+model User {
+  id        String   @id
+  email     String   @unique
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+  
+  // Relações (Tudo que pertence a este usuário)
+  accounts               Account[]
+  categories             Category[]
+  transactions           Transaction[]
+  recurringTransactions  RecurringTransaction[]
+  budgets                Budget[]
+  goals                  Goal[]
+  subscriptions          Subscription[]
+  notifications          Notification[]
+}
+
+// 2. CONTAS (Ex: Carteira, Nubank, Itaú)
+model Account {
+  id            String                 @id @default(cuid())
+  userId        String
+  user          User                   @relation(fields: [userId], references: [id])
+  name          String
+  type          String                 // Ex: CHECKING, SAVINGS, CREDIT
+  balance       Float                  @default(0)
+  createdAt     DateTime               @default(now())
+
+  transactions          Transaction[]
+  recurringTransactions RecurringTransaction[]
+}
+
+// 3. CATEGORIAS (Ex: Alimentação, Lazer, Salário)
+model Category {
+  id            String                 @id @default(cuid())
+  userId        String
+  user          User                   @relation(fields: [userId], references: [id])
+  name          String
+  type          String                 // INCOME ou EXPENSE
+  color         String?                // Opcional: para a interface ficar bonita
+  createdAt     DateTime               @default(now())
+
+  transactions          Transaction[]
+  recurringTransactions RecurringTransaction[]
+  budgets               Budget[]
+}
+
+// 4. TRANSAÇÕES (A tabela principal que você detalhou)
+model Transaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  accountId     String
+  account       Account  @relation(fields: [accountId], references: [id])
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  
+  type          String   // "INCOME" ou "EXPENSE"
+  amount        Float
+  description   String
+  date          DateTime @default(now())
+  isRecurring   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
+
+// 5. TRANSAÇÕES RECORRENTES (Contas fixas mensais)
+model RecurringTransaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  accountId     String
+  account       Account  @relation(fields: [accountId], references: [id])
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  
+  type          String   // "INCOME" ou "EXPENSE"
+  amount        Float
+  description   String
+  frequency     String   // Ex: "MONTHLY", "WEEKLY", "YEARLY"
+  startDate     DateTime
+  endDate       DateTime? // Opcional (se for uma assinatura vitalícia, fica vazio)
+  lastProcessed DateTime?
+  createdAt     DateTime @default(now())
+}
+
+// 6. ORÇAMENTOS (Limites de gastos por categoria)
+model Budget {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  
+  amount        Float
+  period        String   // Ex: "MONTHLY"
+  startDate     DateTime
+  endDate       DateTime?
+  createdAt     DateTime @default(now())
+}
+
+// 7. METAS (Ex: Viagem para a Europa, Reserva de Emergência)
+model Goal {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  name          String
+  targetAmount  Float
+  currentAmount Float    @default(0)
+  deadline      DateTime?
+  createdAt     DateTime @default(now())
+}
+
+// 8. ASSINATURAS (Netflix, Spotify, Software)
+model Subscription {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  name          String
+  amount        Float
+  billingCycle  String   // "MONTHLY", "YEARLY"
+  nextBilling   DateTime
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+}
+
+// 9. NOTIFICAÇÕES (Avisos do sistema para o usuário)
+model Notification {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  message       String
+  isRead        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+}
