@@ -1,7 +1,16 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Isso protege o seu site inteiro por padrão
-export default clerkMiddleware();
+// Aqui definimos quais rotas o Clerk NÃO deve bloquear
+const isPublicRoute = createRouteMatcher([
+  '/login(.*)', 
+  '/api/webhooks(.*)'
+]);
+
+export default clerkMiddleware((auth, request) => {
+  if (!isPublicRoute(request)) {
+    auth().protect(); // Protege tudo que não for público
+  }
+});
 
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
