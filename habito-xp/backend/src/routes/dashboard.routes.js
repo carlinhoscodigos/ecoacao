@@ -9,7 +9,16 @@ router.use(requireAuth);
 router.get('/', async (req, res) => {
   const userId = req.user.sub;
   // Garante que lançamentos de recorrência vencidos já foram materializados.
-  await processRecurringTransactions(userId);
+  // Nunca bloquear o dashboard se a recorrência estiver com algum dado inconsistente.
+  try {
+    // Não pode travar o endpoint. Se demorar demais, renderiza o dashboard mesmo assim.
+    await Promise.race([
+      processRecurringTransactions(userId),
+      new Promise((resolve) => setTimeout(resolve, 1200)),
+    ]);
+  } catch (err) {
+    console.error('Falha ao processar recorrências (dashboard):', err);
+  }
   const accountId = req.query.account_id ? String(req.query.account_id) : null;
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

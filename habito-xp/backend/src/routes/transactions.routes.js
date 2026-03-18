@@ -46,7 +46,11 @@ function buildFilters(query) {
 router.get('/', async (req, res) => {
   const userId = req.user.sub;
   // Garante que recorrências vencidas já viraram transações.
-  await processRecurringTransactions(userId);
+  try {
+    await processRecurringTransactions(userId);
+  } catch (err) {
+    console.error('Falha ao processar recorrências (transactions):', err);
+  }
   const {
     from,
     to,

@@ -11,7 +11,11 @@ router.get('/summary', async (req, res) => {
   const { from, to } = req.query;
   if (!from || !to) return res.status(400).json({ error: 'validation', message: 'from e to são obrigatórios' });
   // Materializa recorrências vencidas para que o relatório reflita os dados reais.
-  await processRecurringTransactions(userId);
+  try {
+    await processRecurringTransactions(userId);
+  } catch (err) {
+    console.error('Falha ao processar recorrências (reports summary):', err);
+  }
 
   const totals = await pool.query(
     `SELECT
@@ -79,7 +83,11 @@ router.get('/export/csv', async (req, res) => {
   const userId = req.user.sub;
   const { from, to } = req.query;
   if (!from || !to) return res.status(400).json({ error: 'validation', message: 'from e to são obrigatórios' });
-  await processRecurringTransactions(userId);
+  try {
+    await processRecurringTransactions(userId);
+  } catch (err) {
+    console.error('Falha ao processar recorrências (reports export):', err);
+  }
 
   const { rows } = await pool.query(
     `SELECT

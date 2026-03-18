@@ -10,7 +10,11 @@ router.use(requireAuth);
 router.get('/', async (req, res) => {
   const userId = req.user.sub;
   const { month, year } = req.query;
-  await processRecurringTransactions(userId);
+  try {
+    await processRecurringTransactions(userId);
+  } catch (err) {
+    console.error('Falha ao processar recorrências (budgets):', err);
+  }
 
   const params = [userId];
   let where = 'WHERE b.user_id = $1';

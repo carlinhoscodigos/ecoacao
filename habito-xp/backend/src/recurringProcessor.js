@@ -73,6 +73,16 @@ function isValidISODateStr(s) {
 export async function processRecurringTransactions(userId) {
   const todayISO = new Date().toISOString().slice(0, 10);
 
+  function maxIterationsForFrequency(f) {
+    if (f === 'daily') return 60;
+    if (f === 'weekly') return 104; // ~2 anos
+    if (f === 'monthly') return 48; // ~4 anos
+    if (f === 'yearly') return 15;
+    return 60;
+  }
+
+  const maxRecurringToProcess = 12;
+
   const { rows } = await pool.query(
     `SELECT
       id, user_id,
@@ -86,51 +96,67 @@ export async function processRecurringTransactions(userId) {
     [userId, todayISO]
   );
 
-  for (const r of rows) {
+  const dueRows = rows.slice(0, maxRecurringToProcess);
+  for (const r of dueRows) {
     let cursorISO = normalizeToISODate(r.next_run_date);
     if (!cursorISO) continue;
-    const maxIterations = 240; // evita loops/erros se a recorrência ficar atrasada demais
-    let iterations = 0;
 
-    while (cursorISO <= todayISO && iterations < maxIterations) {
-      // Insere a transação apenas se ainda não existir para (recurring_id, transaction_date)
-      await pool.query(
-        `INSERT INTO transactions
-           (user_id, type, amount, description, category_id, account_id, transaction_date, status, is_recurring, recurring_id)
-         SELECT
-           $1, $2, $3, $4, $5, $6, $7, $8, true, $9
-         WHERE NOT EXISTS (
-           SELECT 1 FROM transactions
-           WHERE user_id = $1
-             AND recurring_id = $9
-             AND transaction_date = $7
-         )`,
-        [
-          userId,
-          r.type,
-          r.amount,
-          r.description,
-          r.category_id,
-          r.account_id,
-          cursorISO,
-          'completed',
-          r.id,
-        ]
-      );
+    const maxIterations = maxIterationsForFrequency(r.frequency);
 
-      // Avança para a próxima ocorrência
-    cursorISO = calculateNextRunDateISO(cursorISO, r.frequency, r.day_of_month);
-      if (!isValidISODateStr(cursorISO)) break;
-      iterations += 1;
-    }
+    try {
+      let iterations = 0;
+      while (cursorISO <= todayISO && iterations < maxIterations) {
+        if (!isValidISODateStr(cursorISO)) break;
 
-    if (isValidISODateStr(cursorISO)) {
-      await pool.query(
-        `UPDATE recurring_transactions
-         SET next_run_date = $1
-         WHERE id = $2 AND user_id = $3`,
-        [cursorISO, r.id, userId]
-      );
+        // Insere a transação apenas se ainda não existir para (recurring_id, transaction_date)
+        await pool.query(
+          `INSERT INTO transactions
+             (user_id, type, amount, description, category_id, account_id, transaction_date, status, is_recurring, recurring_id)
+           SELECT
+             $1, $2, $3, $4, $5, $6, $7, $8, true, $9
+           WHERE NOT EXISTS (
+             SELECT 1 FROM transactions
+             WHERE user_id = $1
+               AND recurring_id = $9
+               AND transaction_date = $7
+           )`,
+          [
+            userId,
+            r.type,
+            r.amount,
+            r.description,
+            r.category_id,
+            r.account_id,
+            cursorISO,
+            'completed',
+            r.id,
+          ]
+        );
+
+        // Avança para a próxima ocorrência
+        const nextISO = calculateNextRunDateISO(cursorISO, r.frequency, r.day_of_month);
+        if (!isValidISODateStr(nextISO)) {
+          cursorISO = nextISO;
+          break;
+        }
+        // Evita loops caso por algum motivo o cálculo não avance
+        if (nextISO <= cursorISO) break;
+        cursorISO = nextISO;
+        iterations += 1;
+      }
+
+      // Atualiza próximo run apenas se a data estiver válida
+      if (isValidISODateStr(cursorISO)) {
+        await pool.query(
+          `UPDATE recurring_transactions
+           SET next_run_date = $1
+           WHERE id = $2 AND user_id = $3`,
+          [cursorISO, r.id, userId]
+        );
+      }
+    } catch (err) {
+      // Nunca derrubar as rotas de leitura por causa de uma recorrência mal formatada
+      console.error('processRecurringTransactions error (recurring_id):', r.id, err);
     }
   }
 }
