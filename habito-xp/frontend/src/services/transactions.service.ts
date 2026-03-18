@@ -32,6 +32,9 @@ export function createTransaction(input: {
   status: 'pending' | 'completed' | 'canceled';
   is_recurring?: boolean;
   recurring_id?: string | null;
+  frequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  day_of_month?: number | null;
+  next_run_date?: string | null;
 }) {
   return request<{ transaction: Transaction }>('/transactions', { method: 'POST', body: JSON.stringify(input) });
 }

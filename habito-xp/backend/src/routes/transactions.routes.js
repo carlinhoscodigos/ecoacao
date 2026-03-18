@@ -2,6 +2,7 @@ import express from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../auth.js';
 import { requireBodyFields } from '../utils.js';
+import { processRecurringTransactions, calculateNextRunDateISO } from '../recurringProcessor.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -44,6 +45,8 @@ function buildFilters(query) {
 
 router.get('/', async (req, res) => {
   const userId = req.user.sub;
+  // Garante que recorrências vencidas já viraram transações.
+  await processRecurringTransactions(userId);
   const {
     from,
     to,
@@ -116,7 +119,72 @@ router.post('/', async (req, res) => {
     status,
     is_recurring = false,
     recurring_id = null,
+    frequency = null,
+    day_of_month = null,
+    next_run_date = null,
   } = req.body;
+
+  // Se o usuário marcou "Recorrente" sem fornecer recurring_id, criamos a regra automaticamente.
+  if (is_recurring && (!recurring_id || String(recurring_id) === 'null')) {
+    const missing = requireBodyFields(req.body, ['frequency']);
+    if (missing.length) return res.status(400).json({ error: 'validation', missing });
+
+    // A primeira ocorrência acontece no dia escolhido em `transaction_date`.
+    // (O campo `next_run_date` é usado na recorrência, mas para evitar inconsistências
+    // aqui alinhamos a primeira geração com a Data do lançamento.)
+    const firstOccurrenceISO = String(transaction_date);
+    const newDayOfMonth = day_of_month === undefined ? null : day_of_month;
+
+    await pool.query('BEGIN');
+    try {
+      const recurringInsert = await pool.query(
+        `INSERT INTO recurring_transactions
+          (user_id, account_id, category_id, type, amount, description, frequency, day_of_month, next_run_date, is_active)
+         VALUES
+          ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+         RETURNING id`,
+        [
+          userId,
+          account_id,
+          category_id,
+          type,
+          amount,
+          description,
+          frequency,
+          newDayOfMonth,
+          firstOccurrenceISO,
+          true,
+        ]
+      );
+      const recurringId = recurringInsert.rows[0].id;
+
+      // Avança o próximo run para depois da transação inicial, para evitar duplicar.
+      const nextISO = calculateNextRunDateISO(firstOccurrenceISO, frequency, newDayOfMonth);
+      await pool.query('UPDATE recurring_transactions SET next_run_date = $1 WHERE id = $2 AND user_id = $3', [
+        nextISO,
+        recurringId,
+        userId,
+      ]);
+
+      const { rows } = await pool.query(
+        `INSERT INTO transactions
+          (user_id, type, amount, description, category_id, account_id, transaction_date, status, is_recurring, recurring_id)
+         VALUES
+          ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+         RETURNING id, type, amount, description, category_id, account_id, transaction_date, status, is_recurring, recurring_id, created_at, updated_at`,
+        [userId, type, amount, description, category_id, account_id, firstOccurrenceISO, status, true, recurringId]
+      );
+
+      await pool.query('COMMIT');
+
+      // Em caso do next_run_date estar atrasado, materializa tudo até hoje.
+      await processRecurringTransactions(userId);
+      return res.status(201).json({ transaction: rows[0] });
+    } catch (err) {
+      await pool.query('ROLLBACK');
+      throw err;
+    }
+  }
 
   const { rows } = await pool.query(
     `INSERT INTO transactions

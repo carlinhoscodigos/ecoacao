@@ -1,6 +1,7 @@
 import express from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../auth.js';
+import { processRecurringTransactions } from '../recurringProcessor.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -9,6 +10,8 @@ router.get('/summary', async (req, res) => {
   const userId = req.user.sub;
   const { from, to } = req.query;
   if (!from || !to) return res.status(400).json({ error: 'validation', message: 'from e to são obrigatórios' });
+  // Materializa recorrências vencidas para que o relatório reflita os dados reais.
+  await processRecurringTransactions(userId);
 
   const totals = await pool.query(
     `SELECT
@@ -76,6 +79,7 @@ router.get('/export/csv', async (req, res) => {
   const userId = req.user.sub;
   const { from, to } = req.query;
   if (!from || !to) return res.status(400).json({ error: 'validation', message: 'from e to são obrigatórios' });
+  await processRecurringTransactions(userId);
 
   const { rows } = await pool.query(
     `SELECT

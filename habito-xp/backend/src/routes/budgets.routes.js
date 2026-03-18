@@ -2,6 +2,7 @@ import express from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../auth.js';
 import { requireBodyFields } from '../utils.js';
+import { processRecurringTransactions } from '../recurringProcessor.js';
 
 const router = express.Router();
 router.use(requireAuth);
@@ -9,6 +10,7 @@ router.use(requireAuth);
 router.get('/', async (req, res) => {
   const userId = req.user.sub;
   const { month, year } = req.query;
+  await processRecurringTransactions(userId);
 
   const params = [userId];
   let where = 'WHERE b.user_id = $1';

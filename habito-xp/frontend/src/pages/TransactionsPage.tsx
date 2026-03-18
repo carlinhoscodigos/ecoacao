@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
@@ -33,6 +33,7 @@ export function TransactionsPage() {
   const [sp, setSp] = useSearchParams();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Transaction | null>(null);
+  const [recurringEnabled, setRecurringEnabled] = useState(false);
 
   const params = useMemo(() => {
     return {
@@ -55,8 +56,18 @@ export function TransactionsPage() {
     placeholderData: keepPreviousData,
   });
 
-  const qAccounts = useQuery({ queryKey: ['accounts'], queryFn: listAccounts, staleTime: 10 * 60_000 });
-  const qCategories = useQuery({ queryKey: ['categories'], queryFn: () => listCategories(), staleTime: 10 * 60_000 });
+  const qAccounts = useQuery({
+    queryKey: ['accounts'],
+    queryFn: listAccounts,
+    staleTime: 10 * 60_000,
+    placeholderData: keepPreviousData,
+  });
+  const qCategories = useQuery({
+    queryKey: ['categories'],
+    queryFn: () => listCategories(),
+    staleTime: 10 * 60_000,
+    placeholderData: keepPreviousData,
+  });
 
   const save = useMutation({
     mutationFn: async (input: any) => {
@@ -82,10 +93,25 @@ export function TransactionsPage() {
 
   const showForm = sp.get('new') === '1' || !!editing;
 
+  useEffect(() => {
+    if (!showForm) return;
+    setRecurringEnabled(Boolean(editing?.is_recurring));
+  }, [showForm, editing]);
+
   if (qTx.isError) return <ErrorState message={(qTx.error as Error).message} />;
 
   const data = qTx.data;
   if (!data) return <LoadingState title="Carregando lançamentos…" />;
+
+  const accounts = qAccounts.data?.accounts ?? [];
+  const categories = qCategories.data?.categories ?? [];
+  const defaultType = editing?.type || 'expense';
+  const defaultAccountId = editing?.account_id || accounts[0]?.id || '';
+  const defaultCategoryId = editing
+    ? editing.category_id ?? ''
+    : (categories.find((c) => c.type === defaultType)?.id ?? '');
+  const initialTxDate = editing?.transaction_date || new Date().toISOString().slice(0, 10);
+  const initialDayOfMonth = Number(initialTxDate.split('-')[2] || '1');
 
   return (
     <div className="space-y-6">
@@ -220,6 +246,7 @@ export function TransactionsPage() {
                 onSubmit={(e) => {
                   e.preventDefault();
                   const fd = new FormData(e.currentTarget);
+                  const isRecurring = fd.get('is_recurring') === 'on';
                   const input = {
                     type: String(fd.get('type')),
                     amount: Number(fd.get('amount')),
@@ -228,7 +255,17 @@ export function TransactionsPage() {
                     account_id: String(fd.get('account_id')),
                     transaction_date: String(fd.get('transaction_date')),
                     status: String(fd.get('status')),
-                    is_recurring: fd.get('is_recurring') === 'on',
+                    is_recurring: isRecurring,
+                    ...(isRecurring
+                      ? {
+                          frequency: String(fd.get('frequency') || 'monthly'),
+                          day_of_month:
+                            String(fd.get('frequency') || 'monthly') === 'monthly'
+                              ? Number(fd.get('day_of_month') || initialDayOfMonth)
+                              : null,
+                          next_run_date: String(fd.get('next_run_date') || fd.get('transaction_date') || initialTxDate),
+                        }
+                      : {}),
                   };
                   save.mutate(input);
                 }}
@@ -251,11 +288,11 @@ export function TransactionsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Conta">
-                    <Select name="account_id" defaultValue={editing?.account_id || ''} required>
+                    <Select key={`account-${defaultAccountId || 'none'}`} name="account_id" defaultValue={defaultAccountId} required>
                       <option value="" disabled>
                         Selecione…
                       </option>
-                      {(qAccounts.data?.accounts || []).map((a) => (
+                      {accounts.map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.name}
                         </option>
@@ -263,9 +300,9 @@ export function TransactionsPage() {
                     </Select>
                   </Field>
                   <Field label="Categoria">
-                    <Select name="category_id" defaultValue={editing?.category_id || ''}>
+                    <Select key={`category-${defaultCategoryId || 'none'}`} name="category_id" defaultValue={defaultCategoryId}>
                       <option value="">Sem categoria</option>
-                      {(qCategories.data?.categories || []).map((c) => (
+                      {categories.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.name}
                         </option>
@@ -276,7 +313,7 @@ export function TransactionsPage() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="Data">
-                    <Input name="transaction_date" type="date" defaultValue={editing?.transaction_date || new Date().toISOString().slice(0, 10)} required />
+                    <Input name="transaction_date" type="date" defaultValue={initialTxDate} required />
                   </Field>
                   <Field label="Status">
                     <Select name="status" defaultValue={editing?.status || 'completed'} required>
@@ -288,9 +325,39 @@ export function TransactionsPage() {
                 </div>
 
                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <input type="checkbox" name="is_recurring" defaultChecked={editing?.is_recurring || false} />
+                  <input
+                    type="checkbox"
+                    name="is_recurring"
+                    checked={recurringEnabled}
+                    onChange={(e) => setRecurringEnabled(e.target.checked)}
+                  />
                   Recorrente
                 </label>
+
+                {recurringEnabled ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Frequência">
+                        <Select name="frequency" defaultValue={editing?.is_recurring ? 'monthly' : 'monthly'}>
+                          <option value="daily">Diária</option>
+                          <option value="weekly">Semanal</option>
+                          <option value="monthly">Mensal</option>
+                          <option value="yearly">Anual</option>
+                        </Select>
+                      </Field>
+                      <Field label="Próxima execução">
+                        <Input name="next_run_date" type="date" defaultValue={initialTxDate} />
+                      </Field>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Dia do mês (se mensal)">
+                        <Input name="day_of_month" type="number" min={1} max={31} defaultValue={initialDayOfMonth} />
+                      </Field>
+                      <div />
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="pt-3 flex items-center justify-end gap-2">
                   <Button

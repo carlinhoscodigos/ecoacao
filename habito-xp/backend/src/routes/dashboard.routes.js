@@ -1,12 +1,15 @@
 import express from 'express';
 import pool from '../db.js';
 import { requireAuth } from '../auth.js';
+import { processRecurringTransactions } from '../recurringProcessor.js';
 
 const router = express.Router();
 router.use(requireAuth);
 
 router.get('/', async (req, res) => {
   const userId = req.user.sub;
+  // Garante que lançamentos de recorrência vencidos já foram materializados.
+  await processRecurringTransactions(userId);
   const accountId = req.query.account_id ? String(req.query.account_id) : null;
   const now = new Date();
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

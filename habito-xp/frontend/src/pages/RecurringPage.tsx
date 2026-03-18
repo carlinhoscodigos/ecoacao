@@ -31,12 +31,18 @@ export function RecurringPage() {
       setOpen(false);
       setEditing(null);
       await qc.invalidateQueries({ queryKey: ['recurring'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['transactions'], exact: false });
     },
   });
 
   const del = useMutation({
     mutationFn: deleteRecurring,
-    onSuccess: async () => qc.invalidateQueries({ queryKey: ['recurring'] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['recurring'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['transactions'], exact: false });
+    },
   });
 
   if (q.isLoading) return <LoadingState title="Carregando recorrências…" />;
