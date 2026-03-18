@@ -131,7 +131,7 @@ export function TransactionsPage() {
         <Button onClick={() => setSp({ ...Object.fromEntries(sp.entries()), new: '1' })}>Novo lançamento</Button>
       </div>
 
-      <Card className="p-5">
+      <Card className="p-5 overflow-hidden">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <Field label="Período (de)">
             <Input
@@ -233,41 +233,41 @@ export function TransactionsPage() {
             {/* Mobile (RTL + wrap) */}
             <div className="md:hidden">
               <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                <div className="flex flex-row-reverse flex-wrap gap-x-4 gap-y-2 text-[11px] font-bold text-slate-600">
-                  <div className="min-w-[110px] text-right">Data</div>
-                  <div className="min-w-[150px] text-right">Descrição</div>
-                  <div className="min-w-[120px] text-right">Conta</div>
-                  <div className="min-w-[120px] text-right">Categoria</div>
-                  <div className="min-w-[110px] text-right">Status</div>
-                  <div className="min-w-[110px] text-right">Valor</div>
+                <div className="flex flex-row-reverse flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-bold text-slate-600">
+                  <div className="min-w-[110px] text-center">Data</div>
+                  <div className="min-w-[150px] text-center">Descrição</div>
+                  <div className="min-w-[120px] text-center">Conta</div>
+                  <div className="min-w-[120px] text-center">Categoria</div>
+                  <div className="min-w-[110px] text-center">Status</div>
+                  <div className="min-w-[110px] text-center">Valor</div>
                 </div>
               </div>
 
               <div className="divide-y divide-slate-100">
                 {data.transactions.map((t) => (
                   <div key={t.id} className="px-4 py-4">
-                    <div className="flex flex-row-reverse flex-wrap gap-x-4 gap-y-2">
-                      <div className="min-w-[110px] text-right">
+                    <div className="flex flex-row-reverse flex-wrap items-center justify-center gap-x-4 gap-y-2">
+                      <div className="min-w-[110px] text-center">
                         <div className="text-[11px] font-bold text-slate-500">Data</div>
                         <div className="text-sm font-semibold text-slate-700">{formatDateISO(t.transaction_date)}</div>
                       </div>
-                      <div className="min-w-[150px] text-right">
+                      <div className="min-w-[150px] text-center">
                         <div className="text-[11px] font-bold text-slate-500">Descrição</div>
                         <div className="text-sm font-semibold text-slate-900 break-words">{t.description || 'Sem descrição'}</div>
                       </div>
-                      <div className="min-w-[120px] text-right">
+                      <div className="min-w-[120px] text-center">
                         <div className="text-[11px] font-bold text-slate-500">Conta</div>
                         <div className="text-sm font-semibold text-slate-700">{t.account_name || t.account_id}</div>
                       </div>
-                      <div className="min-w-[120px] text-right">
+                      <div className="min-w-[120px] text-center">
                         <div className="text-[11px] font-bold text-slate-500">Categoria</div>
                         <div className="text-sm font-semibold text-slate-700">{t.category_name || '—'}</div>
                       </div>
-                      <div className="min-w-[110px] text-right">
+                      <div className="min-w-[110px] text-center">
                         <div className="text-[11px] font-bold text-slate-500">Status</div>
                         <div className="text-sm font-semibold text-slate-700">{statusLabel(t.status)}</div>
                       </div>
-                      <div className="min-w-[110px] text-right">
+                      <div className="min-w-[110px] text-center">
                         <div className="text-[11px] font-bold text-slate-500">Valor</div>
                         <div
                           className={`text-sm font-black ${
@@ -279,7 +279,7 @@ export function TransactionsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-3 flex items-center justify-end gap-2">
+                    <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
                       <Button variant="secondary" size="sm" onClick={() => setEditing(t)}>
                         Editar
                       </Button>
@@ -352,7 +352,7 @@ export function TransactionsPage() {
                   save.mutate(input);
                 }}
               >
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Tipo">
                     <Select name="type" defaultValue={editing?.type || 'expense'} required>
                       <option value="income">Entrada</option>
@@ -368,7 +368,7 @@ export function TransactionsPage() {
                   <Input name="description" defaultValue={editing?.description || ''} placeholder="Ex: Almoço, venda, assinatura…" />
                 </Field>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Conta">
                     <Select key={`account-${defaultAccountId || 'none'}`} name="account_id" defaultValue={defaultAccountId} required>
                       <option value="" disabled>
@@ -393,7 +393,7 @@ export function TransactionsPage() {
                   </Field>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Data">
                     <Input name="transaction_date" type="date" defaultValue={initialTxDate} required />
                   </Field>
@@ -418,7 +418,7 @@ export function TransactionsPage() {
 
                 {recurringEnabled ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Field label="Frequência">
                         <Select name="frequency" defaultValue={editing?.is_recurring ? 'monthly' : 'monthly'}>
                           <option value="daily">Diária</option>
@@ -432,7 +432,7 @@ export function TransactionsPage() {
                       </Field>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Field label="Dia do mês (se mensal)">
                         <Input name="day_of_month" type="number" min={1} max={31} defaultValue={initialDayOfMonth} />
                       </Field>

@@ -63,19 +63,52 @@ export function RecurringPage() {
         {items.length ? (
           <div className="divide-y divide-slate-100">
             {items.map((r) => (
-              <div key={r.id} className="px-5 py-4 flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-2xl grid place-items-center font-black ${r.type === 'income' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
-                  {r.type === 'income' ? '+' : '–'}
-                </div>
-                  <div className="min-w-0 flex-1">
-                  <div className="font-black text-slate-900 break-words leading-snug">{r.description || 'Recorrência'}</div>
-                  <div className="text-sm text-slate-500 font-semibold">
-                    {frequencyLabel(r.frequency)} • próxima: {formatDateISO(r.next_run_date)}
+              <div key={r.id} className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-start justify-center sm:justify-start gap-3 w-full sm:w-auto">
+                  <div
+                    className={`h-10 w-10 rounded-2xl grid place-items-center font-black ${
+                      r.type === 'income'
+                        ? 'bg-emerald-50 text-emerald-700'
+                        : 'bg-rose-50 text-rose-700'
+                    }`}
+                  >
+                    {r.type === 'income' ? '+' : '–'}
+                  </div>
+
+                  <div className="min-w-0 flex-1 text-center sm:text-left">
+                    <div className="font-black text-slate-900 break-words leading-snug">
+                      {r.description || 'Recorrência'}
+                    </div>
+                    <div className="text-sm text-slate-500 font-semibold">
+                      {frequencyLabel(r.frequency)} • próxima: {formatDateISO(r.next_run_date)}
+                    </div>
                   </div>
                 </div>
-                <div className="font-black text-slate-900">{formatMoney(r.amount)}</div>
-                <Button variant="secondary" size="sm" onClick={() => { setEditing(r); setOpen(true); }}>Editar</Button>
-                <Button variant="danger" size="sm" onClick={() => del.mutate(r.id)} disabled={del.isPending}>Excluir</Button>
+
+                <div className="font-black text-slate-900 text-center sm:text-right whitespace-nowrap">
+                  {formatMoney(r.amount)}
+                </div>
+
+                <div className="flex items-center justify-center sm:justify-end gap-2 flex-wrap w-full sm:w-auto">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setEditing(r);
+                      setOpen(true);
+                    }}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => del.mutate(r.id)}
+                    disabled={del.isPending}
+                  >
+                    Excluir
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -112,7 +145,7 @@ export function RecurringPage() {
                   });
                 }}
               >
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Tipo</div>
                     <Select name="type" defaultValue={editing?.type || 'expense'}>
@@ -129,7 +162,7 @@ export function RecurringPage() {
                   <div className="text-xs font-bold text-slate-600 ml-1">Descrição</div>
                   <input name="description" defaultValue={editing?.description || ''} className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Conta</div>
                     <Select name="account_id" defaultValue={editing?.account_id || ''} required>
@@ -145,7 +178,7 @@ export function RecurringPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Frequência</div>
                     <Select name="frequency" defaultValue={editing?.frequency || 'monthly'}>
@@ -160,7 +193,7 @@ export function RecurringPage() {
                     <input name="day_of_month" type="number" min={1} max={31} defaultValue={editing?.day_of_month ?? ''} className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Próxima execução</div>
                     <input name="next_run_date" type="date" defaultValue={editing?.next_run_date || new Date().toISOString().slice(0, 10)} required className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
@@ -170,7 +203,7 @@ export function RecurringPage() {
                     Ativa
                   </label>
                 </div>
-                <div className="pt-3 flex justify-end gap-2">
+                <div className="pt-3 flex flex-col sm:flex-row justify-center sm:justify-end items-center gap-2">
                   <Button type="button" variant="secondary" onClick={() => { setOpen(false); setEditing(null); }}>Cancelar</Button>
                   <Button type="submit" disabled={save.isPending}>{save.isPending ? 'Salvando…' : 'Salvar'}</Button>
                 </div>
