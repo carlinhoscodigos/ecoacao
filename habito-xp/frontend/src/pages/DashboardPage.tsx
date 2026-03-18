@@ -171,24 +171,6 @@ export function DashboardPage() {
             {accountId ? 'Visão por conta selecionada' : 'Visão total de todas as contas'}
           </div>
         </div>
-
-        <Card className="w-full md:w-[320px] md:flex-shrink-0 min-h-[96px] flex flex-col justify-center px-6 py-4">
-          <div className="text-xs font-bold text-slate-400 ml-1">Conta</div>
-          <div className="mt-2">
-            <Select
-              value={accountId ?? 'all'}
-              onChange={(e) => setAccountId(e.target.value === 'all' ? null : e.target.value)}
-              wrapperClassName="bg-white/90 rounded-2xl"
-            >
-              <option value="all">Total</option>
-              {(qAccounts.data?.accounts || []).map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </Card>
       </div>
 
       <div
@@ -210,7 +192,27 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <Card className="xl:col-span-2">
           <CardHeader>
-            <CardTitle>Entradas vs saídas (últimos 12 meses)</CardTitle>
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <CardTitle>Entradas vs saídas (últimos 12 meses)</CardTitle>
+
+              <div className="w-full sm:w-[240px]">
+                <div className="text-xs font-bold text-slate-400 ml-1">Conta</div>
+                <div className="mt-2">
+                  <Select
+                    value={accountId ?? 'all'}
+                    onChange={(e) => setAccountId(e.target.value === 'all' ? null : e.target.value)}
+                    wrapperClassName="bg-slate-50 rounded-2xl"
+                  >
+                    <option value="all">Total</option>
+                    {(qAccounts.data?.accounts || []).map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardBody>
             {isInitialLoad ? (
