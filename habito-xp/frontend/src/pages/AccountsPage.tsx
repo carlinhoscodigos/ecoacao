@@ -13,6 +13,15 @@ export function AccountsPage() {
   const [editing, setEditing] = useState<Account | null>(null);
   const [open, setOpen] = useState(false);
 
+  function accountTypeLabel(type: string) {
+    if (type === 'checking') return 'Conta corrente';
+    if (type === 'savings') return 'Poupança';
+    if (type === 'wallet') return 'Carteira';
+    if (type === 'credit_card') return 'Cartão de crédito';
+    if (type === 'investment') return 'Investimento';
+    return type;
+  }
+
   const save = useMutation({
     mutationFn: async (input: any) => {
       if (editing) return updateAccount(editing.id, input);
@@ -67,7 +76,7 @@ export function AccountsPage() {
                 {accounts.map((a) => (
                   <tr key={a.id} className="hover:bg-slate-50/60">
                     <td className="px-5 py-4 text-sm font-black text-slate-900">{a.name}</td>
-                    <td className="px-5 py-4 text-sm font-semibold text-slate-700">{a.type}</td>
+                    <td className="px-5 py-4 text-sm font-semibold text-slate-700">{accountTypeLabel(a.type)}</td>
                     <td className="px-5 py-4 text-sm font-semibold text-slate-700">{formatMoney(a.initial_balance)}</td>
                     <td className="px-5 py-4 text-sm font-semibold text-slate-700">{a.is_active ? 'ativa' : 'inativa'}</td>
                     <td className="px-5 py-4 text-right">
@@ -121,11 +130,11 @@ export function AccountsPage() {
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Tipo</div>
                     <select name="type" defaultValue={editing?.type || 'checking'} className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold">
-                      <option value="checking">checking</option>
-                      <option value="savings">savings</option>
-                      <option value="wallet">wallet</option>
-                      <option value="credit_card">credit_card</option>
-                      <option value="investment">investment</option>
+                      <option value="checking">Conta corrente</option>
+                      <option value="savings">Poupança</option>
+                      <option value="wallet">Carteira</option>
+                      <option value="credit_card">Cartão de crédito</option>
+                      <option value="investment">Investimento</option>
                     </select>
                   </div>
                   <div className="space-y-1">

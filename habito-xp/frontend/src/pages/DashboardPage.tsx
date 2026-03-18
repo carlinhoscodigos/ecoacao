@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid, Legend } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { Card, CardBody, CardHeader, CardTitle, CardValue } from '../components/ui/Card';
 import { ErrorState, LoadingState, EmptyState } from '../components/ui/State';
 import { formatMoney, formatDateISO } from '../utils/format';
@@ -30,8 +30,8 @@ export function DashboardPage() {
 
   const q = useQuery({
     queryKey: dashboardKey,
-    staleTime: 10 * 60_000,
-    refetchOnMount: false,
+    staleTime: 0,
+    refetchOnMount: true,
     placeholderData: keepPreviousData,
     queryFn: () => {
       const qs = accountId ? `?account_id=${encodeURIComponent(accountId)}` : '';
@@ -144,21 +144,16 @@ export function DashboardPage() {
                         boxShadow: '0 20px 40px rgba(2,6,23,0.08)',
                       }}
                     />
-                    <Legend
-                      formatter={(value: any) => typeLabel(String(value))}
-                      iconType="circle"
-                      wrapperStyle={{ paddingTop: 6, fontWeight: 600, color: '#64748b' }}
-                    />
                     <Area
                       type="monotone"
                       dataKey="income"
                       name="income"
                       stroke="#10b981"
-                      strokeWidth={3}
+                      strokeWidth={4}
                       fill="#10b981"
-                      fillOpacity={0.12}
-                      dot={false}
-                      activeDot={{ r: 5, strokeWidth: 2, fill: '#10b981' }}
+                      fillOpacity={0.16}
+                      dot={{ r: 3, strokeWidth: 2, fill: '#10b981', stroke: '#10b981' }}
+                      activeDot={{ r: 5, strokeWidth: 2, fill: '#10b981', stroke: '#10b981' }}
                       isAnimationActive={false}
                     />
                     <Area
@@ -166,11 +161,11 @@ export function DashboardPage() {
                       dataKey="expense"
                       name="expense"
                       stroke="#ef4444"
-                      strokeWidth={3}
+                      strokeWidth={4}
                       fill="#ef4444"
-                      fillOpacity={0.10}
-                      dot={false}
-                      activeDot={{ r: 5, strokeWidth: 2, fill: '#ef4444' }}
+                      fillOpacity={0.14}
+                      dot={{ r: 3, strokeWidth: 2, fill: '#ef4444', stroke: '#ef4444' }}
+                      activeDot={{ r: 5, strokeWidth: 2, fill: '#ef4444', stroke: '#ef4444' }}
                       isAnimationActive={false}
                     />
                   </AreaChart>
@@ -220,8 +215,8 @@ export function DashboardPage() {
                   </ResponsiveContainer>
                 </div>
 
-                <div className="space-y-2">
-                  {expensesByCat.map((e, idx) => (
+                <div className="space-y-2 hidden lg:block">
+                  {expensesByCat.slice(0, 5).map((e, idx) => (
                     <div key={idx} className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2 min-w-0">
                         <span

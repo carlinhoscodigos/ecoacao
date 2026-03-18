@@ -6,6 +6,36 @@ import { EmptyState, ErrorState, LoadingState } from '../components/ui/State';
 import { createCategory, deleteCategory, listCategories, updateCategory } from '../services/categories.service';
 import type { Category } from '../types/api';
 
+const COLOR_PRESETS = [
+  { value: '#10b981', label: 'Verde' },
+  { value: '#22c55e', label: 'Verde claro' },
+  { value: '#16a34a', label: 'Verde escuro' },
+  { value: '#ef4444', label: 'Vermelho' },
+  { value: '#f97316', label: 'Laranja' },
+  { value: '#84cc16', label: 'Limão' },
+  { value: '#06b6d4', label: 'Ciano' },
+  { value: '#3b82f6', label: 'Azul' },
+  { value: '#a855f7', label: 'Roxo' },
+  { value: '#ec4899', label: 'Rosa' },
+  { value: '#eab308', label: 'Amarelo' },
+] as const;
+
+const ICON_PRESETS = [
+  { value: 'wallet', label: 'Carteira', emoji: '👛' },
+  { value: 'shopping-cart', label: 'Vendas', emoji: '🛒' },
+  { value: 'utensils', label: 'Alimentação', emoji: '🍽️' },
+  { value: 'home', label: 'Moradia', emoji: '🏠' },
+  { value: 'car', label: 'Transporte', emoji: '🚗' },
+  { value: 'smile', label: 'Lazer', emoji: '😊' },
+  { value: 'heart', label: 'Saúde', emoji: '❤️' },
+  { value: 'credit-card', label: 'Cartão', emoji: '💳' },
+] as const;
+
+function iconEmoji(icon?: string | null) {
+  const found = ICON_PRESETS.find((i) => i.value === icon);
+  return found?.emoji || '🏷️';
+}
+
 export function CategoriesPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['categories'], queryFn: () => listCategories() });
@@ -49,7 +79,13 @@ export function CategoriesPage() {
           <div className="divide-y divide-slate-100">
             {items.map((c) => (
               <div key={c.id} className="px-5 py-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-2xl" style={{ background: c.color || '#e2e8f0' }} />
+                <div
+                  className="h-10 w-10 rounded-2xl grid place-items-center text-lg"
+                  style={{ background: c.color || '#e2e8f0', color: c.color ? 'white' : '#0f172a' }}
+                  aria-hidden
+                >
+                  {iconEmoji(c.icon)}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-black text-slate-900 truncate">{c.name}</div>
                   <div className="text-xs text-slate-500 font-semibold">{c.is_default ? 'padrão' : 'personalizada'}</div>
@@ -119,12 +155,39 @@ export function CategoriesPage() {
                   </div>
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Cor</div>
-                    <input name="color" defaultValue={editing?.color || ''} placeholder="#10b981" className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
+                    <select
+                      name="color"
+                      defaultValue={editing?.color || COLOR_PRESETS[0].value}
+                      className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold outline-none"
+                    >
+                      {COLOR_PRESETS.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
                 <div className="space-y-1">
                   <div className="text-xs font-bold text-slate-600 ml-1">Ícone (opcional)</div>
-                  <input name="icon" defaultValue={editing?.icon || ''} placeholder="Ex: cart, home, food" className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
+                  <select
+                    name="icon"
+                    defaultValue={editing?.icon || 'shopping-cart'}
+                    className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold outline-none"
+                  >
+                    {ICON_PRESETS.map((i) => (
+                      <option key={i.value} value={i.value}>
+                        {i.emoji} {i.label}
+                      </option>
+                    ))}
+                    <option value="">Nenhum</option>
+                  </select>
+                  <div className="pt-2 text-xs font-semibold text-slate-500 flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-lg bg-slate-100">
+                      {iconEmoji(editing?.icon)}
+                    </span>
+                    Prévia do ícone
+                  </div>
                 </div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <input type="checkbox" name="is_default" defaultChecked={editing?.is_default || false} />

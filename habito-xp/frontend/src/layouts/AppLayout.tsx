@@ -129,8 +129,12 @@ export function AppLayout() {
                 </button>
 
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-slate-500">Olá{user?.name ? `, ${user.name}` : ''}</div>
-                  <div className="text-lg md:text-xl font-black text-slate-900 truncate">Bem-vindo de volta</div>
+                  <div className="text-sm font-semibold text-slate-500 truncate">
+                    Olá{user?.name ? `, ${user.name}` : ''}
+                  </div>
+                  <div className="text-base md:text-xl font-black text-slate-900 leading-tight break-words">
+                    Bem-vindo de volta
+                  </div>
                 </div>
 
                 <div className="flex-1" />

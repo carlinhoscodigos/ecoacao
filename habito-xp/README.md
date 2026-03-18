@@ -28,6 +28,10 @@ Registo de pedidos e tarefas. Cada item fica com um check-in: quando for feito, 
 - [x] Backend: saldo atual inclui `accounts.initial_balance` (e conta selecionada)
 - [x] Backend: semear categorias padrão no primeiro login
 - [x] UI: traduzir `income/expense` e frequências para português nas telas (Categorias/Recorrências)
+- [x] Menu mobile: corrigir “Bem-vindo” cortado no topbar
+- [x] Categorias: “Cor” e “Ícone” via dropdown pré-definido (sem inglês)
+- [x] Dashboard: reduzir poluição (menos legendas/listas laterais)
+- [x] Seção no README: “Como usar”
 
 ---
 
@@ -40,3 +44,20 @@ Registo de pedidos e tarefas. Cada item fica com um check-in: quando for feito, 
 Tabelas: **users**, **accounts**, **categories**, **recurring_transactions**, **transactions**, **budgets**, **goals**, **notifications**, **subscriptions**, **transaction_imports**, **shared_access**, **audit_logs**.
 
 Para criar as tabelas no Postgres: `cd backend` e `npm run migrate`.
+
+---
+
+## Como usar
+
+1. Backend
+   - Crie `backend/.env` com `DATABASE_URL`, `PORT` e `JWT_SECRET`
+   - No diretório `backend`, rode as migrações: `npm run migrate`
+   - Inicie o backend: `npm start`
+2. Frontend
+   - Ajuste `frontend/.env` com `VITE_API_URL` apontando para seu backend
+   - Inicie o frontend em `frontend` com `npm run dev`
+3. Uso do app
+   - Faça login
+   - Crie suas contas em `Contas` (defina `Saldo inicial`)
+   - Ajuste/edite categorias em `Categorias` (Cor e Ícone via dropdown pré-definido)
+   - Cadastre lançamentos em `Lançamentos` e acompanhe os totais no `Dashboard`

@@ -93,16 +93,30 @@ router.get('/', async (req, res) => {
 
   const monthlySeries = await pool.query(
     `SELECT
-      to_char(date_trunc('month', transaction_date), 'YYYY-MM') AS month,
-      COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0)::numeric AS income,
-      COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0)::numeric AS expense
-     FROM transactions
-     WHERE user_id = $1 AND status <> 'canceled'
-       AND transaction_date >= (CURRENT_DATE - INTERVAL '11 months')
-       AND transaction_date <= CURRENT_DATE
-       ${accountId ? ' AND account_id = $2' : ''}
-     GROUP BY 1
-     ORDER BY 1`,
+      to_char(m.month_date, 'YYYY-MM') AS month,
+      COALESCE(a.income, 0)::numeric AS income,
+      COALESCE(a.expense, 0)::numeric AS expense
+     FROM (
+       SELECT generate_series(
+         date_trunc('month', CURRENT_DATE) - INTERVAL '11 months',
+         date_trunc('month', CURRENT_DATE),
+         INTERVAL '1 month'
+       )::date AS month_date
+     ) m
+     LEFT JOIN (
+       SELECT
+         date_trunc('month', transaction_date)::date AS month_date,
+         COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0)::numeric AS income,
+         COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0)::numeric AS expense
+       FROM transactions
+       WHERE user_id = $1
+         AND status <> 'canceled'
+         AND transaction_date >= (CURRENT_DATE - INTERVAL '11 months')
+         AND transaction_date <= CURRENT_DATE
+         ${accountId ? ' AND account_id = $2' : ''}
+       GROUP BY 1
+     ) a ON a.month_date = m.month_date
+     ORDER BY m.month_date`,
     accountId ? [userId, accountId] : [userId]
   );
 
