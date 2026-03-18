@@ -100,7 +100,6 @@ export function DashboardPage() {
       return monthly.slice(start, end + 1).map((m) => {
         const income = Number(m.income);
         const expense = Number(m.expense);
-        if (income === 0 && expense === 0) return { ...m, income: null, expense: null } as any;
         return { ...m, income, expense };
       });
     }
@@ -109,9 +108,6 @@ export function DashboardPage() {
     return monthly.map((m) => {
       const income = Number(m.income);
       const expense = Number(m.expense);
-      if (income === 0 && expense === 0) {
-        return { ...m, income: null, expense: null } as any;
-      }
       return { ...m, income, expense };
     });
   }, [monthly]);
@@ -129,14 +125,19 @@ export function DashboardPage() {
 
   const expensesSum = useMemo(() => expensesByCat.reduce((acc, e) => acc + Number(e.total), 0), [expensesByCat]);
 
-  const expensesDonutRows = useMemo(
-    () =>
-      expensesByCat.map((e) => ({
-        ...e,
-        percent: expensesSum > 0 ? Math.round((Number(e.total) / expensesSum) * 100) : 0,
-      })),
-    [expensesByCat, expensesSum]
-  );
+  const expensesDonutRows = useMemo(() => {
+    const sorted = [...expensesByCat].sort((a, b) => Number(b.total) - Number(a.total));
+    const top = sorted.slice(0, 5);
+    const rest = sorted.slice(5);
+    const restSum = rest.reduce((acc, e) => acc + Number(e.total), 0);
+
+    const merged = restSum > 0 ? [...top, { name: 'Outras', color: '#94a3b8', total: restSum }] : top;
+
+    return merged.map((e) => ({
+      ...e,
+      percent: expensesSum > 0 ? Math.round((Number(e.total) / expensesSum) * 100) : 0,
+    }));
+  }, [expensesByCat, expensesSum]);
 
   const lastTransactions = data?.last_transactions ?? [];
   const alerts = data?.alerts ?? [];
@@ -172,7 +173,12 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div
+        className={`
+          grid grid-cols-1 gap-4 sm:grid-cols-2
+          ${cards.length === 4 ? 'xl:grid-cols-4' : cards.length === 3 ? 'xl:grid-cols-3' : 'xl:grid-cols-2'}
+        `}
+      >
         {cards.map((c) => (
           <Card key={c.title}>
             <CardHeader>
@@ -245,7 +251,7 @@ export function DashboardPage() {
                       wrapperStyle={{ paddingTop: 6, color: '#64748b', fontWeight: 600 }}
                     />
                     <Area
-                      type="monotone"
+                      type="linear"
                       dataKey="income"
                       name="income"
                       stroke="#10b981"
@@ -257,7 +263,7 @@ export function DashboardPage() {
                       isAnimationActive={false}
                     />
                     <Area
-                      type="monotone"
+                      type="linear"
                       dataKey="expense"
                       name="expense"
                       stroke="#ef4444"
