@@ -76,7 +76,6 @@ export function DashboardPage() {
   if (q.isError) return <ErrorState message={(q.error as Error)?.message} />;
   const data = q.data;
   const isInitialLoad = q.isLoading && !data;
-  if (!data) return <LoadingState title="Carregando seu dashboard…" />;
 
   const monthly = useMemo(
     () =>
@@ -141,19 +140,24 @@ export function DashboardPage() {
 
   const lastTransactions = data?.last_transactions ?? [];
   const alerts = data?.alerts ?? [];
-  const expenseMonthNum = Number(data.summary.expense_month);
+  const expenseMonthNum = Number(data?.summary?.expense_month ?? 0);
   const topExpenseName = expensesByCat[0]?.name;
 
-  const balanceNum = Number(data.summary.balance);
-  const projectedNum = Number(data.summary.projected_balance);
+  const balanceNum = Number(data?.summary?.balance ?? 0);
+  const projectedNum = Number(data?.summary?.projected_balance ?? 0);
   const showProjected = Number.isFinite(projectedNum) && Math.abs(projectedNum - balanceNum) > 0.01;
 
   const cards = [
-    { title: 'Seu saldo atual', value: formatMoney(data.summary.balance) },
-    { title: 'Receitas do mês', value: formatMoney(data.summary.income_month) },
-    { title: 'Despesas do mês', value: formatMoney(data.summary.expense_month) },
+    { title: 'Seu saldo atual', value: data ? formatMoney(data.summary.balance) : '—' },
+    { title: 'Receitas do mês', value: data ? formatMoney(data.summary.income_month) : '—' },
+    { title: 'Despesas do mês', value: data ? formatMoney(data.summary.expense_month) : '—' },
     ...(showProjected
-      ? [{ title: 'Previsão até o fim do mês', value: formatMoney(data.summary.projected_balance) }]
+      ? [
+          {
+            title: 'Previsão até o fim do mês',
+            value: data ? formatMoney(data.summary.projected_balance) : '—',
+          },
+        ]
       : []),
   ];
 
