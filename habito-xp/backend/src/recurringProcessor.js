@@ -1,8 +1,21 @@
 import pool from './db.js';
 
+function normalizeToISODate(value) {
+  if (!value) return null;
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    return value.toISOString().slice(0, 10);
+  }
+  const s = String(value);
+  if (s.length < 10) return null;
+  // Aceita 'YYYY-MM-DD' ou 'YYYY-MM-DDTHH:mm:ss...' (pegamos só o dia).
+  return s.slice(0, 10);
+}
+
 function parseISODateToUTC(dateStr) {
   // Garante que não dependa do fuso local.
-  return new Date(`${dateStr}T00:00:00.000Z`);
+  const d = String(dateStr).slice(0, 10);
+  return new Date(`${d}T00:00:00.000Z`);
 }
 
 function toISODateUTC(d) {
@@ -53,6 +66,10 @@ export function calculateNextRunDateISO(currentDateISO, frequency, day_of_month)
   return toISODateUTC(addDaysUTC(current, 1));
 }
 
+function isValidISODateStr(s) {
+  return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+}
+
 export async function processRecurringTransactions(userId) {
   const todayISO = new Date().toISOString().slice(0, 10);
 
@@ -70,7 +87,8 @@ export async function processRecurringTransactions(userId) {
   );
 
   for (const r of rows) {
-    let cursorISO = String(r.next_run_date);
+    let cursorISO = normalizeToISODate(r.next_run_date);
+    if (!cursorISO) continue;
     const maxIterations = 240; // evita loops/erros se a recorrência ficar atrasada demais
     let iterations = 0;
 
@@ -101,16 +119,19 @@ export async function processRecurringTransactions(userId) {
       );
 
       // Avança para a próxima ocorrência
-      cursorISO = calculateNextRunDateISO(cursorISO, r.frequency, r.day_of_month);
+    cursorISO = calculateNextRunDateISO(cursorISO, r.frequency, r.day_of_month);
+      if (!isValidISODateStr(cursorISO)) break;
       iterations += 1;
     }
 
-    await pool.query(
-      `UPDATE recurring_transactions
-       SET next_run_date = $1
-       WHERE id = $2 AND user_id = $3`,
-      [cursorISO, r.id, userId]
-    );
+    if (isValidISODateStr(cursorISO)) {
+      await pool.query(
+        `UPDATE recurring_transactions
+         SET next_run_date = $1
+         WHERE id = $2 AND user_id = $3`,
+        [cursorISO, r.id, userId]
+      );
+    }
   }
 }
 
