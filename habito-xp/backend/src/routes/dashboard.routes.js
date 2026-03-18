@@ -67,11 +67,23 @@ router.get('/', async (req, res) => {
   const projectedBalance = Number(accountsInitialValue) + Number(txNetBeforeMonth) + Number(income_month) - Number(expense_month);
 
   const lastTx = await pool.query(
-    `SELECT id, type, amount, description, transaction_date, status, account_id, category_id
-     FROM transactions
-     WHERE user_id = $1
-       AND transaction_date <= CURRENT_DATE${accountId ? ' AND account_id = $2' : ''}
-     ORDER BY transaction_date DESC, created_at DESC
+    `SELECT
+      t.id,
+      t.type,
+      t.amount,
+      t.description,
+      t.transaction_date,
+      t.status,
+      t.account_id,
+      a.name AS account_name,
+      t.category_id,
+      c.name AS category_name
+     FROM transactions t
+     LEFT JOIN accounts a ON a.id = t.account_id
+     LEFT JOIN categories c ON c.id = t.category_id
+     WHERE t.user_id = $1
+       AND t.transaction_date <= CURRENT_DATE${accountId ? ' AND t.account_id = $2' : ''}
+     ORDER BY t.transaction_date DESC, t.created_at DESC
      LIMIT 8`,
     accountId ? [userId, accountId] : [userId]
   );

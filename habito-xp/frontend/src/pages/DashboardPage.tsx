@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid, Legend } from 'recharts';
 import { Card, CardBody, CardHeader, CardTitle, CardValue } from '../components/ui/Card';
 import { ErrorState, LoadingState, EmptyState } from '../components/ui/State';
 import { Select } from '../components/ui/Select';
@@ -10,8 +10,8 @@ import { request } from '../services/http';
 import { listAccounts } from '../services/accounts.service';
 
 function typeLabel(key: string) {
-  if (key === 'income') return 'Receitas';
-  if (key === 'expense') return 'Despesas';
+  if (key === 'income') return 'Entradas';
+  if (key === 'expense') return 'Saídas';
   return key;
 }
 
@@ -19,6 +19,18 @@ function yTickFormatter(value: any) {
   const n = Number(value);
   if (!Number.isFinite(n)) return String(value);
   return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(n);
+}
+
+function formatMonthKey(monthKey: string) {
+  // esperado: YYYY-MM
+  const [yStr, mStr] = String(monthKey).split('-');
+  const y = Number(yStr);
+  const m = Number(mStr);
+  if (!y || !m) return String(monthKey);
+
+  const d = new Date(Date.UTC(y, m - 1, 1));
+  const abbr = new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(d).replace('.', '');
+  return `${abbr} ${y}`;
 }
 
 export function DashboardPage() {
@@ -64,6 +76,7 @@ export function DashboardPage() {
   if (q.isError) return <ErrorState message={(q.error as Error)?.message} />;
   const data = q.data;
   const isInitialLoad = q.isLoading && !data;
+  if (!data) return <LoadingState title="Carregando seu dashboard…" />;
 
   const monthly = useMemo(
     () =>
@@ -77,6 +90,33 @@ export function DashboardPage() {
     [data]
   );
 
+  const monthlyForChart = useMemo(() => {
+    const nonZero = monthly.filter((m) => Number(m.income) !== 0 || Number(m.expense) !== 0);
+    if (nonZero.length <= 2 && nonZero.length > 0) {
+      const idxs = monthly
+        .map((m, idx) => (Number(m.income) !== 0 || Number(m.expense) !== 0 ? idx : -1))
+        .filter((i) => i !== -1);
+      const start = Math.max(0, Math.min(...idxs) - 1);
+      const end = Math.min(monthly.length - 1, Math.max(...idxs) + 1);
+      return monthly.slice(start, end + 1).map((m) => {
+        const income = Number(m.income);
+        const expense = Number(m.expense);
+        if (income === 0 && expense === 0) return { ...m, income: null, expense: null } as any;
+        return { ...m, income, expense };
+      });
+    }
+
+    // Meses vazios ficam menos “fortes” no gráfico.
+    return monthly.map((m) => {
+      const income = Number(m.income);
+      const expense = Number(m.expense);
+      if (income === 0 && expense === 0) {
+        return { ...m, income: null, expense: null } as any;
+      }
+      return { ...m, income, expense };
+    });
+  }, [monthly]);
+
   const expensesByCat = useMemo(
     () =>
       data
@@ -88,26 +128,58 @@ export function DashboardPage() {
     [data]
   );
 
+  const expensesSum = useMemo(() => expensesByCat.reduce((acc, e) => acc + Number(e.total), 0), [expensesByCat]);
+
+  const expensesDonutRows = useMemo(
+    () =>
+      expensesByCat.map((e) => ({
+        ...e,
+        percent: expensesSum > 0 ? Math.round((Number(e.total) / expensesSum) * 100) : 0,
+      })),
+    [expensesByCat, expensesSum]
+  );
+
   const lastTransactions = data?.last_transactions ?? [];
   const alerts = data?.alerts ?? [];
+  const expenseMonthNum = Number(data.summary.expense_month);
+  const topExpenseName = expensesByCat[0]?.name;
+
+  const balanceNum = Number(data.summary.balance);
+  const projectedNum = Number(data.summary.projected_balance);
+  const showProjected = Number.isFinite(projectedNum) && Math.abs(projectedNum - balanceNum) > 0.01;
 
   const cards = [
-    { title: 'Seu saldo atual', value: data ? formatMoney(data.summary.balance) : '—' },
-    { title: 'Receitas do mês', value: data ? formatMoney(data.summary.income_month) : '—' },
-    { title: 'Despesas do mês', value: data ? formatMoney(data.summary.expense_month) : '—' },
-    { title: 'Saldo previsto', value: data ? formatMoney(data.summary.projected_balance) : '—' },
+    { title: 'Seu saldo atual', value: formatMoney(data.summary.balance) },
+    { title: 'Receitas do mês', value: formatMoney(data.summary.income_month) },
+    { title: 'Despesas do mês', value: formatMoney(data.summary.expense_month) },
+    ...(showProjected
+      ? [{ title: 'Previsão até o fim do mês', value: formatMoney(data.summary.projected_balance) }]
+      : []),
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-end gap-4">
         <div className="flex-1">
           <div className="text-2xl font-black text-white">Visão geral</div>
           <div className="text-sm text-slate-300 font-medium mt-1">
             {accountId ? 'Visão por conta selecionada' : 'Visão total de todas as contas'}
           </div>
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {cards.map((c) => (
+          <Card key={c.title}>
+            <CardHeader>
+              <CardTitle>{c.title}</CardTitle>
+              <CardValue>{c.value}</CardValue>
+            </CardHeader>
+          </Card>
+        ))}
+      </div>
+
+      <div className="flex justify-end">
         <div className="w-full md:w-[320px]">
           <div className="text-xs font-bold text-slate-400 ml-1">Conta</div>
           <Select
@@ -125,17 +197,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {cards.map((c) => (
-          <Card key={c.title}>
-            <CardHeader>
-              <CardTitle>{c.title}</CardTitle>
-              <CardValue>{c.value}</CardValue>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
-
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         <Card className="xl:col-span-2">
           <CardHeader>
@@ -147,9 +208,15 @@ export function DashboardPage() {
             ) : monthly.length ? (
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={monthly} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                  <AreaChart data={monthlyForChart} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
                     <CartesianGrid stroke="#eef2ff" strokeDasharray="6 6" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 12, fill: '#94a3b8' }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickFormatter={(v) => formatMonthKey(String(v))}
+                    />
                     <YAxis
                       tick={{ fontSize: 12, fill: '#94a3b8' }}
                       axisLine={false}
@@ -157,14 +224,21 @@ export function DashboardPage() {
                       tickFormatter={yTickFormatter}
                     />
                     <Tooltip
-                      formatter={(value: any, name: any) => [formatMoney(value), typeLabel(String(name))]}
-                      labelFormatter={(label: any) => `Mês ${String(label)}`}
+                      formatter={(value: any, name: any) => {
+                        if (value == null) return ['—', typeLabel(String(name))];
+                        return [formatMoney(value), typeLabel(String(name))];
+                      }}
+                      labelFormatter={(label: any) => `Mês ${formatMonthKey(String(label))}`}
                       contentStyle={{
                         background: 'white',
                         borderRadius: 14,
                         border: '1px solid #e2e8f0',
                         boxShadow: '0 20px 40px rgba(2,6,23,0.08)',
                       }}
+                    />
+                    <Legend
+                      formatter={(value: any) => typeLabel(String(value))}
+                      wrapperStyle={{ paddingTop: 6, color: '#64748b', fontWeight: 600 }}
                     />
                     <Area
                       type="monotone"
@@ -208,24 +282,31 @@ export function DashboardPage() {
               <LoadingState title="Carregando categorias…" />
             ) : expensesByCat.length ? (
               <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-4 items-center">
-                <div className="h-[280px]">
+                <div className="relative h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={expensesByCat}
+                        data={expensesDonutRows}
                         dataKey="total"
                         nameKey="name"
-                        innerRadius={62}
-                        outerRadius={110}
-                        paddingAngle={2}
-                        stroke="none"
+                        innerRadius={70}
+                        outerRadius={115}
+                        paddingAngle={1}
+                        stroke="white"
+                        strokeWidth={1}
+                        cornerRadius={8}
                       >
-                        {expensesByCat.map((e, idx) => (
+                        {expensesDonutRows.map((e, idx) => (
                           <Cell key={idx} fill={e.color || '#94a3b8'} />
                         ))}
                       </Pie>
                       <Tooltip
-                        formatter={(value: any) => [formatMoney(value), '']}
+                        formatter={(value: any, name: any, props: any) => {
+                          const percent = props?.payload?.percent;
+                          if (value == null) return ['—', ''];
+                          return [formatMoney(value), `${percent ?? 0}%`];
+                        }}
+                        labelFormatter={() => ''}
                         contentStyle={{
                           background: 'white',
                           borderRadius: 14,
@@ -235,17 +316,24 @@ export function DashboardPage() {
                       />
                     </PieChart>
                   </ResponsiveContainer>
+
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <div className="text-xs font-semibold text-slate-500">Total</div>
+                    <div className="text-lg font-black text-slate-900">{formatMoney(expensesSum)}</div>
+                  </div>
                 </div>
 
-                <div className="space-y-2 hidden lg:block">
-                  {expensesByCat.slice(0, 5).map((e, idx) => (
+                <div className="space-y-2">
+                  {expensesDonutRows.map((e, idx) => (
                     <div key={idx} className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2 min-w-0">
                         <span
                           className="h-2.5 w-2.5 rounded-full flex-shrink-0"
                           style={{ background: e.color || '#94a3b8' }}
                         />
-                        <span className="text-sm font-semibold text-slate-700 truncate">{e.name}</span>
+                        <span className="text-sm font-semibold text-slate-700 truncate">
+                          {e.name} — {e.percent}%
+                        </span>
                       </div>
                       <div className="text-sm font-black text-slate-900">{formatMoney(e.total)}</div>
                     </div>
@@ -280,7 +368,10 @@ export function DashboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold text-slate-900 truncate">{t.description || 'Sem descrição'}</div>
-                      <div className="text-sm text-slate-500 font-medium">{formatDateISO(t.transaction_date)}</div>
+                      <div className="text-xs text-slate-500 font-medium mt-1">{formatDateISO(t.transaction_date)}</div>
+                      <div className="text-xs text-slate-400 font-semibold truncate mt-1">
+                        {t.category_name || 'Sem categoria'} • {t.account_name || '—'}
+                      </div>
                     </div>
                     <div className={`font-black ${t.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>{formatMoney(t.amount)}</div>
                   </div>
@@ -309,7 +400,16 @@ export function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <EmptyState title="Tudo sob controle" description="Quando houver alertas inteligentes, eles vão aparecer aqui." />
+              <EmptyState
+                title="Tudo sob controle"
+                description={
+                  expenseMonthNum <= 0
+                    ? 'Nenhuma despesa registrada neste mês.'
+                    : topExpenseName
+                      ? `Sua maior despesa atual é ${topExpenseName}.`
+                      : 'Registre uma despesa para ver insights por categoria.'
+                }
+              />
             )}
           </CardBody>
         </Card>

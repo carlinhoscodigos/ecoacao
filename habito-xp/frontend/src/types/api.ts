@@ -62,7 +62,12 @@ export type DashboardResponse = {
     monthly: Array<{ month: string; income: string | number; expense: string | number }>;
     expenses_by_category: Array<{ name: string; color: string; total: string | number }>;
   };
-  last_transactions: Array<Pick<Transaction, 'id' | 'type' | 'amount' | 'description' | 'transaction_date' | 'status' | 'account_id' | 'category_id'>>;
+  last_transactions: Array<
+    Pick<
+      Transaction,
+      'id' | 'type' | 'amount' | 'description' | 'transaction_date' | 'status' | 'account_id' | 'category_id'
+    > & { account_name?: string; category_name?: string }
+  >;
   alerts: Array<{ title: string; message: string; level: 'info' | 'warning' | 'danger' }>;
 };
 
