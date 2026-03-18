@@ -6,6 +6,7 @@ import { EmptyState, ErrorState, LoadingState } from '../components/ui/State';
 import { createGoal, deleteGoal, listGoals, updateGoal, type Goal } from '../services/goals.service';
 import { formatMoney } from '../utils/format';
 import { Select } from '../components/ui/Select';
+import { listAccounts } from '../services/accounts.service';
 
 function Progress({ value }: { value: number }) {
   const v = Math.max(0, Math.min(100, value));
@@ -16,9 +17,20 @@ function Progress({ value }: { value: number }) {
   );
 }
 
+function accountTypeLabel(type?: string | null) {
+  if (!type) return '—';
+  if (type === 'checking') return 'Conta corrente';
+  if (type === 'savings') return 'Poupança';
+  if (type === 'wallet') return 'Carteira';
+  if (type === 'credit_card') return 'Cartão de crédito';
+  if (type === 'investment') return 'Investimento';
+  return type;
+}
+
 export function GoalsPage() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['goals'], queryFn: listGoals });
+  const qAccounts = useQuery({ queryKey: ['accounts'], queryFn: listAccounts });
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Goal | null>(null);
 
@@ -42,6 +54,8 @@ export function GoalsPage() {
   if (q.isLoading) return <LoadingState title="Carregando metas…" />;
   if (q.isError) return <ErrorState message={(q.error as Error).message} />;
   const goals = q.data!.goals;
+  const accounts = qAccounts.data?.accounts ?? [];
+  const accountTypes = Array.from(new Set(accounts.map((a) => a.type)));
 
   return (
     <div className="space-y-6">
@@ -66,6 +80,9 @@ export function GoalsPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="font-black text-slate-900 truncate">{g.name}</div>
+                      <div className="text-xs font-semibold text-slate-500 mt-1">
+                        Tipo de conta: {accountTypeLabel(g.account_type)}
+                      </div>
                       <div className="text-sm text-slate-500 font-semibold mt-1">
                         {formatMoney(current)} de {formatMoney(target)} • {p}% • faltam {formatMoney(faltam)}
                       </div>
@@ -105,9 +122,9 @@ export function GoalsPage() {
                   save.mutate({
                     name: String(fd.get('name')),
                     target_amount: Number(fd.get('target_amount')),
-                    current_amount: Number(fd.get('current_amount') || 0),
                     target_date: String(fd.get('target_date') || '') || null,
                     status: String(fd.get('status') || 'active'),
+                    account_type: String(fd.get('account_type') || '').trim() || null,
                   });
                 }}
               >
@@ -121,10 +138,35 @@ export function GoalsPage() {
                     <input name="target_amount" type="number" step="0.01" min={0} defaultValue={editing ? Number(editing.target_amount) : ''} required className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
                   </div>
                   <div className="space-y-1">
-                    <div className="text-xs font-bold text-slate-600 ml-1">Valor atual</div>
-                    <input name="current_amount" type="number" step="0.01" min={0} defaultValue={editing ? Number(editing.current_amount) : 0} className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold" />
+                    <div className="text-xs font-bold text-slate-600 ml-1">Tipo de conta</div>
+                    <Select
+                      name="account_type"
+                      key={`goal-account-type-${editing?.account_type || accountTypes[0] || 'checking'}`}
+                      defaultValue={
+                        editing?.account_type || accountTypes[0] || 'checking'
+                      }
+                    >
+                      {accountTypes.map((t) => (
+                        <option key={t} value={t}>
+                          {accountTypeLabel(t)}
+                        </option>
+                      ))}
+                      {accountTypes.length === 0 ? (
+                        <option value="checking">{accountTypeLabel('checking')}</option>
+                      ) : null}
+                    </Select>
                   </div>
                 </div>
+
+                <div className="space-y-1">
+                  <div className="text-xs font-bold text-slate-600 ml-1">Progresso atual</div>
+                  <input
+                    value={formatMoney(Number(editing?.current_amount ?? 0))}
+                    readOnly
+                    className="w-full h-11 rounded-2xl border border-slate-100 bg-slate-50 px-4 text-sm font-semibold text-slate-800"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="text-xs font-bold text-slate-600 ml-1">Prazo (opcional)</div>

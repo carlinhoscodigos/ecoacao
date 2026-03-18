@@ -32,6 +32,7 @@ Registo de pedidos e tarefas. Cada item fica com um check-in: quando for feito, 
 - [x] Categorias: “Cor” e “Ícone” via dropdown pré-definido (sem inglês)
 - [x] Dashboard: reduzir poluição (menos legendas/listas laterais)
 - [x] Seção no README: “Como usar”
+- [x] Metas: selecionar “Tipo de conta” e sincronizar progresso automaticamente
 
 ---
 

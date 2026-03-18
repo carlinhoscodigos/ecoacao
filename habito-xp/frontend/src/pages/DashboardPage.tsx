@@ -36,6 +36,7 @@ function formatMonthKey(monthKey: string) {
 export function DashboardPage() {
   // null = total (todas as contas)
   const [accountId, setAccountId] = useState<string | null>(null);
+  const [selectedExpenseIdx, setSelectedExpenseIdx] = useState<number | null>(null);
   const qc = useQueryClient();
 
   const qAccounts = useQuery({ queryKey: ['accounts'], queryFn: listAccounts, staleTime: 10 * 60_000 });
@@ -72,6 +73,11 @@ export function DashboardPage() {
       staleTime: 10 * 60_000,
     });
   }, [qAccounts.data, qc]);
+
+  // Ao trocar filtros/conta, limpa seleção do donut pra não ficar “preso” em um índice antigo.
+  useEffect(() => {
+    setSelectedExpenseIdx(null);
+  }, [accountId]);
 
   if (q.isError) return <ErrorState message={(q.error as Error)?.message} />;
   const data = q.data;
@@ -307,9 +313,19 @@ export function DashboardPage() {
                         stroke="white"
                         strokeWidth={1}
                         cornerRadius={8}
+                        onClick={(data: any, idx: any) => {
+                          const n = typeof idx === 'number' ? idx : Number(idx);
+                          if (!Number.isFinite(n)) setSelectedExpenseIdx(null);
+                          else setSelectedExpenseIdx(n);
+                        }}
                       >
                         {expensesDonutRows.map((e, idx) => (
-                          <Cell key={idx} fill={e.color || '#94a3b8'} />
+                          <Cell
+                            key={idx}
+                            fill={e.color || '#94a3b8'}
+                            cursor="pointer"
+                            opacity={selectedExpenseIdx == null || selectedExpenseIdx === idx ? 1 : 0.35}
+                          />
                         ))}
                       </Pie>
                       <Tooltip
@@ -337,18 +353,39 @@ export function DashboardPage() {
 
                 <div className="w-full space-y-2">
                   {expensesDonutRows.map((e, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-3">
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedExpenseIdx(idx)}
+                      className={`
+                        w-full flex items-center justify-between gap-3 rounded-2xl px-3 py-2
+                        border border-transparent transition
+                        hover:bg-slate-50/70
+                        focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-emerald-500/20
+                        ${selectedExpenseIdx === idx ? 'border-emerald-500/60 bg-emerald-50/30' : ''}
+                      `}
+                    >
                       <div className="flex items-center gap-2 min-w-0">
                         <span
                           className="h-2.5 w-2.5 rounded-full flex-shrink-0"
                           style={{ background: e.color || '#94a3b8' }}
                         />
-                        <span className="text-sm font-semibold text-slate-700 truncate">
+                        <span
+                          className={`text-sm font-semibold truncate ${
+                            selectedExpenseIdx === idx ? 'text-emerald-800' : 'text-slate-700'
+                          }`}
+                        >
                           {e.name} — {e.percent}%
                         </span>
                       </div>
-                      <div className="text-sm font-black text-slate-900 whitespace-nowrap">{formatMoney(e.total)}</div>
-                    </div>
+                      <div
+                        className={`text-sm font-black whitespace-nowrap ${
+                          selectedExpenseIdx === idx ? 'text-emerald-800' : 'text-slate-900'
+                        }`}
+                      >
+                        {formatMoney(e.total)}
+                      </div>
+                    </button>
                   ))}
                 </div>
               </div>
