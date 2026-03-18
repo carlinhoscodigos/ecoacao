@@ -17,6 +17,8 @@ Registo de pedidos e tarefas. Cada item fica com um check-in: quando for feito, 
 - [x] Ajustar design do login para ficar igual ao layout enviado (sem texto de admins)
 - [x] Área interna SaaS: layout autenticado + 9 páginas (dashboard, lançamentos, contas, categorias, orçamentos, metas, recorrências, relatórios, configurações) com design premium e componentes reutilizáveis
 - [x] Corrigir CORS/preflight para remover "Failed to fetch" no login (produção)
+- [x] Corrigir 404 no Vercel em rotas (SPA rewrite para /login)
+- [x] Corrigir 500 no /auth/login (troca bcrypt -> bcryptjs + errors em JSON)
 
 ---
 

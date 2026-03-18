@@ -58,6 +58,13 @@ app.use('/recurring-transactions', recurringRoutes);
 app.use('/notifications', notificationsRoutes);
 app.use('/reports', reportsRoutes);
 
+// Sempre devolve JSON (evita HTML "Internal Server Error" no frontend)
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'server_error', message: 'Erro interno' });
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
