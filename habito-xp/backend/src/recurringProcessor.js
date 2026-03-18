@@ -24,24 +24,29 @@ export function calculateNextRunDateISO(currentDateISO, frequency, day_of_month)
   const current = parseISODateToUTC(currentDateISO);
   const day = Number(day_of_month ?? current.getUTCDate());
 
+  const lastDayOfMonth = (year, monthIndex0Based) => new Date(Date.UTC(year, monthIndex0Based + 1, 0)).getUTCDate();
+
   if (frequency === 'daily') {
     return toISODateUTC(addDaysUTC(current, 1));
   }
+
   if (frequency === 'weekly') {
     return toISODateUTC(addDaysUTC(current, 7));
   }
+
   if (frequency === 'monthly') {
-    const year = current.getUTCFullYear();
-    const monthIndex = current.getUTCMonth() + 1;
-    const targetDay = clampDayUTC(year + Math.floor(monthIndex / 12), monthIndex % 12, day);
-    const normalizedYear = year + Math.floor(monthIndex / 12);
-    return toISODateUTC(new Date(Date.UTC(normalizedYear, monthIndex % 12, targetDay)));
+    const nextMonth0 = current.getUTCMonth() + 1;
+    const nextYear = current.getUTCFullYear() + Math.floor(nextMonth0 / 12);
+    const nextMonth = nextMonth0 % 12;
+    const clampedDay = Math.min(day, lastDayOfMonth(nextYear, nextMonth));
+    return toISODateUTC(new Date(Date.UTC(nextYear, nextMonth, clampedDay)));
   }
+
   if (frequency === 'yearly') {
-    const normalizedYear = current.getUTCFullYear() + 1;
-    const monthIndex = current.getUTCMonth();
-    const targetDay = clampDayUTC(normalizedYear, monthIndex, day);
-    return toISODateUTC(new Date(Date.UTC(normalizedYear, monthIndex, targetDay)));
+    const year = current.getUTCFullYear() + 1;
+    const month = current.getUTCMonth();
+    const clampedDay = Math.min(day, lastDayOfMonth(year, month));
+    return toISODateUTC(new Date(Date.UTC(year, month, clampedDay)));
   }
 
   // fallback: se vier algo inesperado, não trava
