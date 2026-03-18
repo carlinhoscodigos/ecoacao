@@ -22,6 +22,7 @@ export function AccountsPage() {
       setOpen(false);
       setEditing(null);
       await qc.invalidateQueries({ queryKey: ['accounts'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
     },
   });
 
@@ -29,6 +30,7 @@ export function AccountsPage() {
     mutationFn: deleteAccount,
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['accounts'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
     },
   });
 

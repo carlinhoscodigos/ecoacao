@@ -76,7 +76,7 @@ export function TransactionsPage() {
       sp.delete('new');
       setSp(sp, { replace: true });
       await qc.invalidateQueries({ queryKey: ['transactions'] });
-      await qc.invalidateQueries({ queryKey: ['dashboard'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
     },
   });
 
@@ -84,7 +84,7 @@ export function TransactionsPage() {
     mutationFn: async (id: string) => deleteTransaction(id),
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['transactions'] });
-      await qc.invalidateQueries({ queryKey: ['dashboard'] });
+      await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
     },
   });
 

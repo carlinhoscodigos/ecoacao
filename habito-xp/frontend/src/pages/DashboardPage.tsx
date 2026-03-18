@@ -30,8 +30,8 @@ export function DashboardPage() {
 
   const q = useQuery({
     queryKey: dashboardKey,
-    staleTime: 0,
-    refetchOnMount: true,
+    staleTime: 10 * 60_000,
+    refetchOnMount: false,
     placeholderData: keepPreviousData,
     queryFn: () => {
       const qs = accountId ? `?account_id=${encodeURIComponent(accountId)}` : '';
@@ -41,32 +41,39 @@ export function DashboardPage() {
 
   if (q.isError) return <ErrorState message={(q.error as Error)?.message} />;
   const data = q.data;
-  if (!data) return <LoadingState title="Carregando seu dashboard…" />;
+  const isDashboardLoading = q.isLoading || (!data && q.isFetching);
 
   const monthly = useMemo(
     () =>
-      data.charts.monthly.map((m) => ({
-        ...m,
-        income: Number(m.income),
-        expense: Number(m.expense),
-      })),
+      data
+        ? data.charts.monthly.map((m) => ({
+            ...m,
+            income: Number(m.income),
+            expense: Number(m.expense),
+          }))
+        : [],
     [data]
   );
 
   const expensesByCat = useMemo(
     () =>
-      data.charts.expenses_by_category.map((e) => ({
-        ...e,
-        total: Number(e.total),
-      })),
+      data
+        ? data.charts.expenses_by_category.map((e) => ({
+            ...e,
+            total: Number(e.total),
+          }))
+        : [],
     [data]
   );
 
+  const lastTransactions = data?.last_transactions ?? [];
+  const alerts = data?.alerts ?? [];
+
   const cards = [
-    { title: 'Seu saldo atual', value: formatMoney(data.summary.balance) },
-    { title: 'Receitas do mês', value: formatMoney(data.summary.income_month) },
-    { title: 'Despesas do mês', value: formatMoney(data.summary.expense_month) },
-    { title: 'Saldo previsto', value: formatMoney(data.summary.projected_balance) },
+    { title: 'Seu saldo atual', value: data ? formatMoney(data.summary.balance) : '—' },
+    { title: 'Receitas do mês', value: data ? formatMoney(data.summary.income_month) : '—' },
+    { title: 'Despesas do mês', value: data ? formatMoney(data.summary.expense_month) : '—' },
+    { title: 'Saldo previsto', value: data ? formatMoney(data.summary.projected_balance) : '—' },
   ];
 
   return (
@@ -113,7 +120,9 @@ export function DashboardPage() {
             <CardTitle>Entradas vs saídas (últimos 12 meses)</CardTitle>
           </CardHeader>
           <CardBody>
-            {monthly.length ? (
+            {isDashboardLoading ? (
+              <LoadingState title="Carregando gráficos…" />
+            ) : monthly.length ? (
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthly} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
@@ -178,7 +187,9 @@ export function DashboardPage() {
             <CardTitle>Despesas por categoria (mês)</CardTitle>
           </CardHeader>
           <CardBody>
-            {expensesByCat.length ? (
+            {isDashboardLoading ? (
+              <LoadingState title="Carregando categorias…" />
+            ) : expensesByCat.length ? (
               <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-4 items-center">
                 <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -237,9 +248,11 @@ export function DashboardPage() {
             <CardTitle>Últimos lançamentos</CardTitle>
           </CardHeader>
           <CardBody>
-            {data.last_transactions.length ? (
+            {isDashboardLoading ? (
+              <LoadingState title="Carregando lançamentos…" />
+            ) : lastTransactions.length ? (
               <div className="divide-y divide-slate-100">
-                {data.last_transactions.map((t) => (
+                {lastTransactions.map((t) => (
                   <div key={t.id} className="py-3 flex items-center gap-3">
                     <div
                       className={`h-10 w-10 rounded-2xl grid place-items-center font-black ${
@@ -267,9 +280,11 @@ export function DashboardPage() {
             <CardTitle>Alertas</CardTitle>
           </CardHeader>
           <CardBody>
-            {data.alerts.length ? (
+            {isDashboardLoading ? (
+              <LoadingState title="Carregando alertas…" />
+            ) : alerts.length ? (
               <div className="space-y-2">
-                {data.alerts.map((a, idx) => (
+                {alerts.map((a, idx) => (
                   <div key={idx} className="rounded-2xl border border-slate-100 p-3">
                     <div className="font-bold text-slate-900">{a.title}</div>
                     <div className="text-sm text-slate-500 font-medium mt-1">{a.message}</div>
