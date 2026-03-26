@@ -43,10 +43,13 @@ router.post('/login', async (req, res) => {
     const missing = requireBodyFields(req.body, ['email', 'password']);
     if (missing.length) return res.status(400).json({ error: 'validation', missing });
 
-    const { email, password } = req.body;
+    const rawEmail = String(req.body.email || '');
+    const rawPassword = String(req.body.password || '');
+    const email = rawEmail.trim().toLowerCase();
+    const password = rawPassword;
 
     const { rows } = await pool.query(
-      'SELECT id, email, name, password_hash, is_active, plan FROM users WHERE email = $1 LIMIT 1',
+      'SELECT id, email, name, password_hash, is_active, plan FROM users WHERE lower(email) = $1 LIMIT 1',
       [email]
     );
 
@@ -57,7 +60,24 @@ router.post('/login', async (req, res) => {
       return res.status(500).json({ error: 'server_error', message: 'Usuário sem senha configurada' });
     }
 
-    const ok = await bcrypt.compare(String(password), String(user.password_hash));
+    const stored = String(user.password_hash).trim();
+    let ok = false;
+
+    // Fluxo normal: senha hash bcrypt.
+    try {
+      ok = await bcrypt.compare(password, stored);
+    } catch {
+      ok = false;
+    }
+
+    // Fallback para bases legadas onde senha pode ter ficado em texto puro.
+    // Se bater, migra imediatamente para hash seguro.
+    if (!ok && stored === password) {
+      ok = true;
+      const newHash = await bcrypt.hash(password, 10);
+      await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [user.id, newHash]);
+    }
+
     if (!ok) return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
 
     await ensureDefaultCategories(user.id);
