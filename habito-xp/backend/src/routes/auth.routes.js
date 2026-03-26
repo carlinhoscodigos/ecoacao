@@ -16,6 +16,13 @@ function maskEmail(email) {
   return `${local.slice(0, 2)}***@${domain}`;
 }
 
+router.get('/login', (_req, res) => {
+  return res.status(405).json({
+    error: 'method_not_allowed',
+    message: 'Use POST /auth/login com { email, password }',
+  });
+});
+
 async function ensureDefaultCategories(userId) {
   const { rows } = await pool.query('SELECT COUNT(*)::int AS count FROM categories WHERE user_id = $1', [userId]);
   if ((rows[0]?.count ?? 0) > 0) return;
