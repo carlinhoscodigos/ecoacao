@@ -6,6 +6,7 @@ import { requireBodyFields } from '../utils.js';
 
 const router = express.Router();
 const AUTH_DEBUG = String(process.env.AUTH_DEBUG || '').toLowerCase() === 'true';
+const AUTH_AUTO_REGISTER = String(process.env.AUTH_AUTO_REGISTER || 'false').toLowerCase() === 'true';
 
 function maskEmail(email) {
   const e = String(email || '');
@@ -14,6 +15,18 @@ function maskEmail(email) {
   if (!local) return `***@${domain}`;
   if (local.length <= 2) return `${local[0] || '*'}***@${domain}`;
   return `${local.slice(0, 2)}***@${domain}`;
+}
+
+function guessNameFromEmail(email) {
+  const local = String(email || '').split('@')[0] || 'Usuário';
+  const cleaned = local.replace(/[._-]+/g, ' ').trim();
+  if (!cleaned) return 'Usuário';
+  return cleaned
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+    .slice(0, 150);
 }
 
 router.get('/login', (_req, res) => {
@@ -75,14 +88,59 @@ router.post('/login', async (req, res) => {
     }
 
     const { rows } = await pool.query(
-      'SELECT id, email, name, password_hash, is_active, plan FROM users WHERE lower(email) = $1 LIMIT 1',
+      'SELECT id, email, name, password_hash, is_active, plan, role FROM users WHERE lower(email) = $1 LIMIT 1',
       [email]
     );
 
-    const user = rows[0];
+    let user = rows[0];
     if (!user) {
       if (AUTH_DEBUG) console.log('[AUTH_DEBUG] login:fail_user_not_found', { email: masked });
-      return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
+
+      if (!AUTH_AUTO_REGISTER) {
+        return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
+      }
+
+      // Auto cadastro local no primeiro login (útil quando o usuário existe no Clerk
+      // mas ainda não foi provisionado na tabela users desta API).
+      const passwordHash = await bcrypt.hash(password, 10);
+      const guessedName = guessNameFromEmail(email);
+
+      try {
+        const created = await pool.query(
+          `INSERT INTO users (email, name, password_hash, plan, is_active, role)
+           VALUES ($1, $2, $3, 'free', true, 'user')
+           RETURNING id, email, name, password_hash, is_active, plan, role`,
+          [email, guessedName, passwordHash]
+        );
+        user = created.rows[0];
+        if (AUTH_DEBUG) {
+          console.log('[AUTH_DEBUG] login:auto_register_created', {
+            userId: user.id,
+            email: masked,
+          });
+        }
+      } catch (err) {
+        // Se outra requisição criou ao mesmo tempo, buscamos de novo.
+        if (err?.code === '23505') {
+          const retry = await pool.query(
+            'SELECT id, email, name, password_hash, is_active, plan, role FROM users WHERE lower(email) = $1 LIMIT 1',
+            [email]
+          );
+          user = retry.rows[0];
+          if (AUTH_DEBUG) {
+            console.log('[AUTH_DEBUG] login:auto_register_race_retry', {
+              found: Boolean(user),
+              email: masked,
+            });
+          }
+        } else {
+          throw err;
+        }
+      }
+
+      if (!user) {
+        return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
+      }
     }
     if (!user.is_active) {
       if (AUTH_DEBUG) console.log('[AUTH_DEBUG] login:fail_user_inactive', { userId: user.id, email: masked });
@@ -146,7 +204,7 @@ router.post('/login', async (req, res) => {
 
     await ensureDefaultCategories(user.id);
 
-    const token = signToken({ sub: user.id });
+    const token = signToken({ sub: user.id, role: user.role || 'user' });
     if (AUTH_DEBUG) {
       console.log('[AUTH_DEBUG] login:success', {
         userId: user.id,
@@ -155,7 +213,7 @@ router.post('/login', async (req, res) => {
     }
     return res.json({
       token,
-      user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
+      user: { id: user.id, email: user.email, name: user.name, plan: user.plan, role: user.role || 'user' },
     });
   } catch (err) {
     console.error('Erro no /auth/login:', err);
@@ -171,7 +229,7 @@ router.post('/login', async (req, res) => {
 
 router.get('/me', requireAuth, async (req, res) => {
   const userId = req.user.sub;
-  const { rows } = await pool.query('SELECT id, email, name, plan, is_active FROM users WHERE id = $1', [userId]);
+  const { rows } = await pool.query('SELECT id, email, name, plan, role, is_active FROM users WHERE id = $1', [userId]);
   const user = rows[0];
   if (!user) return res.status(404).json({ error: 'not_found' });
   return res.json({ user });

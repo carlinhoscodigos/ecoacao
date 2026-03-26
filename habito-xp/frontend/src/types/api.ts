@@ -11,6 +11,7 @@ export type User = {
   email: string;
   name: string;
   plan: string;
+  role?: 'admin' | 'user';
 };
 
 export type Account = {

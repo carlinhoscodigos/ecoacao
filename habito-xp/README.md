@@ -33,6 +33,8 @@ Registo de pedidos e tarefas. Cada item fica com um check-in: quando for feito, 
 - [x] Dashboard: reduzir poluição (menos legendas/listas laterais)
 - [x] Seção no README: “Como usar”
 - [x] Metas: selecionar “Tipo de conta” e sincronizar progresso automaticamente
+- [x] Remover dependência de Clerk no fluxo e criar painel próprio de cadastro de usuários
+- [x] Controle de `role` (admin/user) e painel de usuários visível apenas para admin
 
 ---
 

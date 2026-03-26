@@ -11,6 +11,7 @@ import goalsRoutes from './routes/goals.routes.js';
 import recurringRoutes from './routes/recurring.routes.js';
 import notificationsRoutes from './routes/notifications.routes.js';
 import reportsRoutes from './routes/reports.routes.js';
+import usersRoutes from './routes/users.routes.js';
 
 const app = express();
 
@@ -57,6 +58,7 @@ app.use('/goals', goalsRoutes);
 app.use('/recurring-transactions', recurringRoutes);
 app.use('/notifications', notificationsRoutes);
 app.use('/reports', reportsRoutes);
+app.use('/users', usersRoutes);
 
 // Sempre devolve JSON (evita HTML "Internal Server Error" no frontend)
 // eslint-disable-next-line no-unused-vars
