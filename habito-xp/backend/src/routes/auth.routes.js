@@ -5,6 +5,16 @@ import { signToken, requireAuth } from '../auth.js';
 import { requireBodyFields } from '../utils.js';
 
 const router = express.Router();
+const AUTH_DEBUG = String(process.env.AUTH_DEBUG || '').toLowerCase() === 'true';
+
+function maskEmail(email) {
+  const e = String(email || '');
+  const [local, domain] = e.split('@');
+  if (!domain) return 'email-invalido';
+  if (!local) return `***@${domain}`;
+  if (local.length <= 2) return `${local[0] || '*'}***@${domain}`;
+  return `${local.slice(0, 2)}***@${domain}`;
+}
 
 async function ensureDefaultCategories(userId) {
   const { rows } = await pool.query('SELECT COUNT(*)::int AS count FROM categories WHERE user_id = $1', [userId]);
@@ -47,6 +57,15 @@ router.post('/login', async (req, res) => {
     const rawPassword = String(req.body.password || '');
     const email = rawEmail.trim().toLowerCase();
     const password = rawPassword;
+    const masked = maskEmail(email);
+
+    if (AUTH_DEBUG) {
+      console.log('[AUTH_DEBUG] login:start', {
+        email: masked,
+        emailLen: email.length,
+        passwordLen: password.length,
+      });
+    }
 
     const { rows } = await pool.query(
       'SELECT id, email, name, password_hash, is_active, plan FROM users WHERE lower(email) = $1 LIMIT 1',
@@ -54,9 +73,16 @@ router.post('/login', async (req, res) => {
     );
 
     const user = rows[0];
-    if (!user) return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
-    if (!user.is_active) return res.status(403).json({ error: 'inactive', message: 'Usuário inativo' });
+    if (!user) {
+      if (AUTH_DEBUG) console.log('[AUTH_DEBUG] login:fail_user_not_found', { email: masked });
+      return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
+    }
+    if (!user.is_active) {
+      if (AUTH_DEBUG) console.log('[AUTH_DEBUG] login:fail_user_inactive', { userId: user.id, email: masked });
+      return res.status(403).json({ error: 'inactive', message: 'Usuário inativo' });
+    }
     if (!user.password_hash) {
+      if (AUTH_DEBUG) console.log('[AUTH_DEBUG] login:fail_no_password_hash', { userId: user.id, email: masked });
       return res.status(500).json({ error: 'server_error', message: 'Usuário sem senha configurada' });
     }
 
@@ -66,8 +92,25 @@ router.post('/login', async (req, res) => {
     // Fluxo normal: senha hash bcrypt.
     try {
       ok = await bcrypt.compare(password, stored);
+      if (AUTH_DEBUG) {
+        console.log('[AUTH_DEBUG] login:bcrypt_compare', {
+          userId: user.id,
+          email: masked,
+          hashPrefix: stored.slice(0, 4),
+          hashLen: stored.length,
+          bcryptOk: ok,
+        });
+      }
     } catch {
       ok = false;
+      if (AUTH_DEBUG) {
+        console.log('[AUTH_DEBUG] login:bcrypt_compare_exception', {
+          userId: user.id,
+          email: masked,
+          hashPrefix: stored.slice(0, 4),
+          hashLen: stored.length,
+        });
+      }
     }
 
     // Fallback para bases legadas onde senha pode ter ficado em texto puro.
@@ -76,19 +119,45 @@ router.post('/login', async (req, res) => {
       ok = true;
       const newHash = await bcrypt.hash(password, 10);
       await pool.query('UPDATE users SET password_hash = $2 WHERE id = $1', [user.id, newHash]);
+      if (AUTH_DEBUG) {
+        console.log('[AUTH_DEBUG] login:legacy_plaintext_migrated', {
+          userId: user.id,
+          email: masked,
+        });
+      }
     }
 
-    if (!ok) return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
+    if (!ok) {
+      if (AUTH_DEBUG) {
+        console.log('[AUTH_DEBUG] login:fail_invalid_credentials', {
+          userId: user.id,
+          email: masked,
+        });
+      }
+      return res.status(401).json({ error: 'invalid_credentials', message: 'Credenciais inválidas' });
+    }
 
     await ensureDefaultCategories(user.id);
 
     const token = signToken({ sub: user.id });
+    if (AUTH_DEBUG) {
+      console.log('[AUTH_DEBUG] login:success', {
+        userId: user.id,
+        email: masked,
+      });
+    }
     return res.json({
       token,
       user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
     });
   } catch (err) {
     console.error('Erro no /auth/login:', err);
+    if (AUTH_DEBUG) {
+      console.log('[AUTH_DEBUG] login:exception', {
+        message: err?.message,
+        code: err?.code,
+      });
+    }
     return res.status(500).json({ error: 'server_error', message: 'Erro interno no login' });
   }
 });
