@@ -14,7 +14,10 @@ export function clearToken() {
   localStorage.removeItem('token');
 }
 
-function safeErrorMessageByStatus(status: number) {
+function safeErrorMessageByStatus(status: number, path: string, apiError?: ApiError | null) {
+  if (path === '/auth/login' && status === 401) return 'E-mail ou senha inválidos.';
+  if (apiError?.error === 'invalid_credentials') return 'E-mail ou senha inválidos.';
+  if (apiError?.error === 'inactive') return 'Usuário inativo. Fale com o administrador.';
   if (status === 401) return 'Sessão inválida. Faça login novamente.';
   if (status === 403) return 'Você não tem permissão para realizar esta ação.';
   if (status === 404) return 'Recurso não encontrado.';
@@ -49,8 +52,8 @@ export async function request<T>(path: string, init: RequestInit = {}): Promise<
   }
 
   if (!res.ok) {
-    const err = (data ?? { error: 'unknown', message: safeErrorMessageByStatus(res.status) }) as ApiError;
-    const message = safeErrorMessageByStatus(res.status);
+    const err = (data ?? { error: 'unknown' }) as ApiError;
+    const message = safeErrorMessageByStatus(res.status, path, err);
     const e = new Error(message);
     // @ts-expect-error attach
     e.status = res.status;

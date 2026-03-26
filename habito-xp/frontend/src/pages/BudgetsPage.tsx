@@ -33,12 +33,16 @@ export function BudgetsPage() {
       setOpen(false);
       setEditingId(null);
       await qc.invalidateQueries({ queryKey: ['budgets'] });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 
   const del = useMutation({
     mutationFn: deleteBudget,
-    onSuccess: async () => qc.invalidateQueries({ queryKey: ['budgets'] }),
+    onSuccess: async () => {
+      await qc.invalidateQueries({ queryKey: ['budgets'] });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
+    },
   });
 
   const budgets = q.data?.budgets ?? [];

@@ -53,6 +53,7 @@ export function CategoriesPage() {
       setOpen(false);
       setEditing(null);
       await qc.invalidateQueries({ queryKey: ['categories'] });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 
@@ -60,6 +61,7 @@ export function CategoriesPage() {
     mutationFn: deleteCategory,
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['categories'] });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 

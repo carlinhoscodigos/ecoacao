@@ -25,12 +25,6 @@ export function LandingPage() {
               Lucrô<span className="text-emerald-500 text-3xl leading-none">.</span>
             </div>
 
-            <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
-              <a href="#beneficios" className="hover:text-white transition">Benefícios</a>
-              <a href="#recursos" className="hover:text-white transition">Recursos</a>
-              <a href="#cta" className="hover:text-white transition">Começar</a>
-            </nav>
-
             <div className="flex items-center gap-2">
               <Link to="/login" className="h-10 px-4 rounded-2xl bg-slate-800 text-slate-100 text-sm font-semibold inline-flex items-center">
                 Login
@@ -45,12 +39,6 @@ export function LandingPage() {
               </a>
             </div>
           </div>
-
-          <nav className="mt-4 md:hidden flex items-center gap-2 text-xs font-semibold text-slate-200">
-            <a href="#beneficios" className="px-3 py-2 rounded-xl bg-slate-800/80">Benefícios</a>
-            <a href="#recursos" className="px-3 py-2 rounded-xl bg-slate-800/80">Recursos</a>
-            <a href="#cta" className="px-3 py-2 rounded-xl bg-slate-800/80">Começar</a>
-          </nav>
         </header>
 
         <section className="mt-6 md:mt-8 rounded-3xl bg-white text-slate-900 border border-slate-100 shadow-xl shadow-slate-900/10 p-6 md:p-10">

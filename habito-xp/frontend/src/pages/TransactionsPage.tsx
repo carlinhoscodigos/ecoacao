@@ -88,6 +88,7 @@ export function TransactionsPage() {
       setSp(sp, { replace: true });
       await qc.invalidateQueries({ queryKey: ['transactions'] });
       await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 
@@ -96,6 +97,7 @@ export function TransactionsPage() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['transactions'] });
       await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 

@@ -33,6 +33,7 @@ export function AccountsPage() {
       setEditing(null);
       await qc.invalidateQueries({ queryKey: ['accounts'] });
       await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 
@@ -41,6 +42,7 @@ export function AccountsPage() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: ['accounts'] });
       await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 

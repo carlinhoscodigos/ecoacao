@@ -33,6 +33,7 @@ export function RecurringPage() {
       await qc.invalidateQueries({ queryKey: ['recurring'] });
       await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
       await qc.invalidateQueries({ queryKey: ['transactions'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 
@@ -42,6 +43,7 @@ export function RecurringPage() {
       await qc.invalidateQueries({ queryKey: ['recurring'] });
       await qc.invalidateQueries({ queryKey: ['dashboard'], exact: false });
       await qc.invalidateQueries({ queryKey: ['transactions'], exact: false });
+      await qc.invalidateQueries({ queryKey: ['reports'], exact: false });
     },
   });
 
