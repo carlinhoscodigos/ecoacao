@@ -11,9 +11,9 @@ export function verifyPassword(plain, hash) {
   return bcrypt.compareSync(plain, hash);
 }
 
-export function signToken(config, userId, email) {
+export function signToken(config, userId, email, role = 'user') {
   return jwt.sign(
-    { sub: String(userId), email },
+    { sub: String(userId), email, role },
     config.jwtSecret,
     { expiresIn: config.jwtExpiresIn }
   );

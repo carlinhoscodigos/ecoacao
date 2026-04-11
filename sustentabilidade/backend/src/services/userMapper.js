@@ -7,6 +7,7 @@ export function userRowToApi(row) {
     id: String(row.id),
     name: row.nome,
     email: row.email,
+    role: row.role || 'user',
     participantType: row.tipo || '',
     classGroup: row.class_group || '',
     cidade: row.cidade || undefined,
@@ -19,6 +20,7 @@ export function userRowToApi(row) {
     cargo: row.cargo || undefined,
     funcao: row.funcao || undefined,
     relacao: row.relacao || undefined,
+    totalPoints: row.pontos_totais || 0,
     createdAt: row.created_at,
   };
 }

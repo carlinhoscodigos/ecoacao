@@ -1,0 +1,533 @@
+.page {
+  min-height: 100vh;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(226, 238, 228, 0.9) 0%, rgba(243, 247, 244, 0.96) 100%),
+    #f2f7f2;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(30, 107, 138, 0.18), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(245, 166, 35, 0.2), transparent 24%),
+    linear-gradient(135deg, #173b23 0%, #215330 45%, #275e4d 100%);
+  color: #f6fbf7;
+  box-shadow: 0 24px 60px rgba(17, 38, 24, 0.18);
+}
+
+.eyebrow {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin-top: 16px;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.subtitle {
+  max-width: 720px;
+  margin-top: 10px;
+  color: rgba(246, 251, 247, 0.78);
+}
+
+.heroActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 14px;
+  min-width: 220px;
+}
+
+.adminChip {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.12);
+  text-align: right;
+}
+
+.adminChip span {
+  color: rgba(246, 251, 247, 0.78);
+  font-size: 0.95rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.tab {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid #d0ddd1;
+  background: rgba(255, 255, 255, 0.8);
+  color: #3c5b43;
+  font-weight: 700;
+}
+
+.tabActive {
+  background: #1f5a31;
+  color: #fff;
+  border-color: #1f5a31;
+}
+
+.bannerError,
+.bannerStatus {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-weight: 600;
+}
+
+.bannerError {
+  background: rgba(231, 76, 60, 0.12);
+  color: #9d2d21;
+}
+
+.bannerStatus {
+  background: rgba(39, 174, 96, 0.14);
+  color: #1f6b43;
+}
+
+.section,
+.cardGrid,
+.duoGrid,
+.chartList,
+.rankList,
+.infoList,
+.passwordForm,
+.detailGrid,
+.editForm,
+.rankingCards {
+  display: grid;
+  gap: 18px;
+}
+
+.cardGrid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.duoGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metricCard,
+.panelCard {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(24, 73, 36, 0.08);
+  box-shadow: 0 18px 40px rgba(24, 51, 33, 0.08);
+}
+
+.metricCard {
+  padding: 20px;
+}
+
+.metricCard span {
+  display: block;
+  color: #6a7f6f;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metricCard strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 2rem;
+  color: #183b23;
+}
+
+.panelCard {
+  padding: 22px;
+}
+
+.panelHeader h2 {
+  color: #16331d;
+  font-size: 1.25rem;
+}
+
+.panelHeader p {
+  margin-top: 4px;
+  color: #68806d;
+}
+
+.chartRow {
+  display: grid;
+  gap: 8px;
+}
+
+.chartRowTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: #284530;
+  font-size: 0.95rem;
+}
+
+.chartTrack {
+  height: 12px;
+  border-radius: 999px;
+  background: #e4ede5;
+  overflow: hidden;
+}
+
+.chartFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2d7a3a 0%, #4fb56b 100%);
+}
+
+.donutWrap {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  align-items: center;
+  gap: 18px;
+}
+
+.donut {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+  max-width: 220px;
+  border-radius: 50%;
+}
+
+.donutHole {
+  position: absolute;
+  inset: 26%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: #264430;
+  text-align: center;
+}
+
+.donutHole strong {
+  font-size: 1.6rem;
+}
+
+.donutHole span {
+  color: #6d826f;
+  font-size: 0.9rem;
+}
+
+.legend {
+  display: grid;
+  gap: 10px;
+}
+
+.legendItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  color: #274230;
+}
+
+.legendDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.rankItem,
+.rankingCard {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #f8fbf8;
+  border: 1px solid #e5efe5;
+}
+
+.rankItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.rankPos,
+.rankPoints {
+  font-weight: 700;
+  color: #1f5b32;
+}
+
+.rankItem p,
+.rankingCard p {
+  color: #6b806f;
+  font-size: 0.95rem;
+}
+
+.filters,
+.filtersSingle {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.filters {
+  grid-template-columns: 2fr 1fr 1fr;
+}
+
+.filtersSingle {
+  grid-template-columns: 1fr;
+}
+
+.tableWrap {
+  margin-top: 18px;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 14px 10px;
+  text-align: left;
+  border-bottom: 1px solid #ebf0eb;
+  vertical-align: top;
+}
+
+.table th {
+  color: #6b806f;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rowActions button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #eef6ef;
+  color: #1e5630;
+  font-weight: 700;
+}
+
+.dangerLink {
+  background: rgba(231, 76, 60, 0.12) !important;
+  color: #9d2d21 !important;
+}
+
+.rankingHead {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 6px;
+  color: #203d28;
+}
+
+.infoList {
+  margin-bottom: 18px;
+}
+
+.detailItem {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #f8fbf8;
+  border: 1px solid #e6efe7;
+}
+
+.detailItem span {
+  display: block;
+  color: #728575;
+  font-size: 0.9rem;
+}
+
+.detailItem strong {
+  display: block;
+  margin-top: 4px;
+  color: #24432c;
+}
+
+.filters input,
+.filters select,
+.filtersSingle input,
+.passwordForm input,
+.editForm input,
+.editForm select {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid #d5e1d5;
+  background: #fbfdfb;
+}
+
+.passwordActions,
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.passwordStatus {
+  color: #275d36;
+  font-weight: 600;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(12, 24, 16, 0.46);
+  backdrop-filter: blur(6px);
+  z-index: 50;
+}
+
+.modal {
+  width: min(100%, 860px);
+  max-height: min(88vh, 920px);
+  overflow: auto;
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(7, 18, 10, 0.25);
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.modalHeader h2 {
+  color: #1a3822;
+}
+
+.modalHeader p {
+  margin-top: 4px;
+  color: #6d826f;
+}
+
+.closeButton {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: #eef5ef;
+  color: #24442d;
+  font-weight: 700;
+}
+
+.detailGrid,
+.editForm {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editForm label {
+  display: grid;
+  gap: 8px;
+  color: #264330;
+  font-weight: 600;
+}
+
+.editForm label span {
+  font-size: 0.92rem;
+}
+
+.editForm .modalActions {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.emptyChart {
+  color: #6e826f;
+}
+
+.loading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: #24442d;
+  font-weight: 700;
+}
+
+@media (max-width: 1180px) {
+  .cardGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 920px) {
+  .page {
+    padding: 18px;
+  }
+
+  .hero {
+    flex-direction: column;
+  }
+
+  .heroActions {
+    align-items: stretch;
+  }
+
+  .duoGrid,
+  .filters,
+  .donutWrap,
+  .detailGrid,
+  .editForm {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .cardGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rankingHead,
+  .rankItem {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .page {
+    padding: 14px;
+  }
+
+  .hero,
+  .panelCard,
+  .modal {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -5,7 +5,11 @@ import { createAuthController } from './controllers/authController.js';
 import { createActionsController } from './controllers/actionsController.js';
 import { createRankingController } from './controllers/rankingController.js';
 import { createMigrationController } from './controllers/migrationController.js';
-import { createAuthMiddleware } from './middleware/authMiddleware.js';
+import {
+  createAuthMiddleware,
+  createAdminMiddleware,
+} from './middleware/authMiddleware.js';
+import { createAdminController } from './controllers/adminController.js';
 
 export function createApp(config) {
   const app = express();
@@ -42,9 +46,11 @@ export function createApp(config) {
 
   const auth = createAuthController(config, getDbBound);
   const authMw = createAuthMiddleware(config);
+  const adminMw = createAdminMiddleware(config, getDbBound);
   const actions = createActionsController(config, getDbBound);
   const ranking = createRankingController(config, getDbBound);
   const migration = createMigrationController(config, getDbBound);
+  const admin = createAdminController(config, getDbBound);
 
   app.get('/api/health', (req, res) => {
     res.status(200).json({
@@ -59,6 +65,17 @@ export function createApp(config) {
   app.post('/api/auth/login', auth.login);
   app.get('/api/auth/me', authMw, auth.me);
   app.post('/api/auth/logout', authMw, auth.logout);
+
+  app.post('/api/admin/login', admin.login);
+  app.get('/api/admin/me', adminMw, admin.me);
+  app.post('/api/admin/change-password', adminMw, admin.changePassword);
+  app.get('/api/admin/dashboard', adminMw, admin.dashboard);
+  app.get('/api/admin/users', adminMw, admin.listUsers);
+  app.get('/api/admin/users/:id', adminMw, admin.getUser);
+  app.put('/api/admin/users/:id', adminMw, admin.updateUser);
+  app.delete('/api/admin/users/:id', adminMw, admin.deleteUser);
+  app.get('/api/admin/ranking', adminMw, admin.ranking);
+  app.get('/api/admin/stats', adminMw, admin.stats);
 
   app.get('/api/actions', actions.listCatalog);
   app.post('/api/actions/register', authMw, actions.registerAction);

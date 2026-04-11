@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
 import { getDb } from './db/db.js';
+import { ensureAdminSeed } from './services/adminSeedService.js';
 
 // Carrega backend/.env sempre a partir deste arquivo (não depende do cwd).
 // Assim `node src/server.js` funciona mesmo quando o cwd não é a pasta backend.
@@ -41,6 +42,10 @@ if (!FRONTEND_URL_DEV && isProduction) {
 try {
   getDb(config);
   console.log(`[server] SQLite: ${config.databasePath}`);
+  const seed = ensureAdminSeed(config, getDb);
+  console.log(
+    `[server] Admin seed: ${seed.created ? 'criado' : seed.promoted ? 'promovido' : 'ok'} (${seed.email})`
+  );
 } catch (e) {
   console.error('[server] Falha ao inicializar base de dados:', e.message);
   process.exit(1);

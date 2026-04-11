@@ -13,6 +13,7 @@ export const STORAGE_KEYS = {
   ACTION_LOGS: 'ecoacao_action_logs',
   ACTIONS_CATALOG: 'ecoacao_actions_catalog',
   AUTH_TOKEN: 'ecoacao_auth_token',
+  ADMIN_AUTH_TOKEN: 'ecoacao_admin_auth_token',
   MIGRATION_V1_DONE: 'ecoacao_migrated_v1',
 };
 

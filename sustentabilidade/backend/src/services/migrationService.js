@@ -125,7 +125,7 @@ export function importLocalStorageSnapshot(config, getDb, payload) {
   if (currentUserEmail) {
     const u = db.prepare('SELECT * FROM users WHERE email = ?').get(currentUserEmail);
     if (u) {
-      token = signToken(config, u.id, u.email);
+      token = signToken(config, u.id, u.email, u.role || 'user');
       user = userRowToApi(u);
     }
   }

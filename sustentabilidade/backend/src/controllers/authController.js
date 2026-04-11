@@ -68,7 +68,7 @@ export function createAuthController(config, getDb) {
           .get(result.lastInsertRowid);
 
         const apiUser = userRowToApi(user);
-        const token = signToken(config, user.id, user.email);
+        const token = signToken(config, user.id, user.email, user.role || 'user');
         console.log(`[auth] registo ok: id=${user.id} email=${user.email}`);
         return res.status(201).json({ user: apiUser, token });
       } catch (e) {
@@ -93,9 +93,12 @@ export function createAuthController(config, getDb) {
       if (!user || !verifyPassword(password, user.password_hash)) {
         return res.status(401).json({ error: 'invalid_credentials' });
       }
+      if (user.role === 'admin') {
+        return res.status(403).json({ error: 'admin_use_admin_login' });
+      }
 
       const apiUser = userRowToApi(user);
-      const token = signToken(config, user.id, user.email);
+      const token = signToken(config, user.id, user.email, user.role || 'user');
       console.log(`[auth] login ok: id=${user.id} email=${user.email}`);
       return res.json({ user: apiUser, token });
     },

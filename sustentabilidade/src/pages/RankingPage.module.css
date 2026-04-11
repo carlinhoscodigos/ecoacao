@@ -232,15 +232,15 @@
     font-size: 2rem;
   }
 
-  .list {
-    order: 2;
-    gap: 10px;
-  }
-
   .podium {
-    order: 3;
+    order: 2;
     gap: 8px;
     padding: 12px 8px 8px;
+  }
+
+  .list {
+    order: 3;
+    gap: 10px;
   }
 
   .podiumSlot {

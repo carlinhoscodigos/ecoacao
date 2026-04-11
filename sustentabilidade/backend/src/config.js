@@ -67,6 +67,9 @@ export function loadConfig() {
 
   const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
   const importSecret = process.env.IMPORT_SECRET?.trim() || '';
+  const adminSeedEmail = process.env.ADMIN_SEED_EMAIL?.trim() || '';
+  const adminSeedPassword = process.env.ADMIN_SEED_PASSWORD?.trim() || '';
+  const adminSeedName = process.env.ADMIN_SEED_NAME?.trim() || '';
 
   return {
     PORT,
@@ -79,5 +82,8 @@ export function loadConfig() {
     jwtSecret,
     jwtExpiresIn,
     importSecret,
+    adminSeedEmail,
+    adminSeedPassword,
+    adminSeedName,
   };
 }
