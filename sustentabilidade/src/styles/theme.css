@@ -1,0 +1,43 @@
+:root {
+  --color-primary: #2d7a3a;
+  --color-primary-light: #3d9e4e;
+  --color-primary-dark: #1a5225;
+  --color-secondary: #1e6b8a;
+  --color-accent: #f5a623;
+  --color-accent-light: #ffc04d;
+  --color-bg: #f0f7f1;
+  --color-bg-card: #ffffff;
+  --color-bg-sidebar: #1a3320;
+  --color-text: #1a2e1d;
+  --color-text-muted: #5a7a60;
+  --color-text-light: #f9fdf9;
+  --color-border: #c8e6cc;
+  --color-success: #27ae60;
+  --color-danger: #e74c3c;
+  --color-warning: #f39c12;
+  --color-ranking-gold: #f5c518;
+  --color-ranking-silver: #b0b8bf;
+  --color-ranking-bronze: #cd7f32;
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+
+  --font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  --transition: 0.2s ease;
+  --nav-height: 64px;
+  --sidebar-width: 220px;
+}
