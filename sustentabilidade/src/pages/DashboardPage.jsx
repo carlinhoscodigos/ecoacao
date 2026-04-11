@@ -98,6 +98,37 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div className={styles.statsGrid}>
+          <StatCard
+            emoji={levelInfo.icon}
+            label="Nível atual"
+            value={levelInfo.title}
+            sub={`Nível ${levelInfo.level}`}
+            color="green"
+          />
+          <StatCard
+            emoji="⭐"
+            label="Pontos totais"
+            value={totalPoints}
+            sub="pontos acumulados"
+            color="yellow"
+          />
+          <StatCard
+            emoji="📅"
+            label="Hoje"
+            value={`+${todayPoints}`}
+            sub={`${todayLogs.length} ${pluralize(todayLogs.length, 'ação registrada', 'ações registradas')}`}
+            color="blue"
+          />
+          <StatCard
+            emoji="🎯"
+            label="Ações disponíveis"
+            value={ACTIONS_CATALOG.length}
+            sub="categorias diferentes"
+            color="purple"
+          />
+        </div>
+
         <div className={styles.quickActions}>
           <h2 className={styles.sectionTitle}>🚀 Ações rápidas</h2>
           {recentLogs.length === 0 && (
@@ -121,37 +152,6 @@ export default function DashboardPage() {
           <Button variant="secondary" fullWidth onClick={() => navigate('/acoes')} size="sm">
             Ver todas as ações →
           </Button>
-        </div>
-
-        <div className={styles.statsGrid}>
-          <StatCard
-            emoji={levelInfo.icon}
-            label="Nível atual"
-            value={levelInfo.title}
-            sub={`Nível ${levelInfo.level}`}
-            color="green"
-          />
-          <StatCard
-            emoji="⭐"
-            label="Pontos totais"
-            value={totalPoints}
-            sub="pontos acumulados"
-            color="yellow"
-          />
-          <StatCard
-            emoji="📅"
-            label="Hoje"
-            value={`+${todayPoints}`}
-            sub={`${todayLogs.length} ações registradas`}
-            color="blue"
-          />
-          <StatCard
-            emoji="🎯"
-            label="Ações disponíveis"
-            value={ACTIONS_CATALOG.length}
-            sub="categorias diferentes"
-            color="purple"
-          />
         </div>
 
         <div className={styles.duoTopGrid}>
