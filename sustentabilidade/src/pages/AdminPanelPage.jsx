@@ -7,7 +7,7 @@ import styles from './AdminPanelPage.module.css';
 
 const TAB_ITEMS = [
   { id: 'overview', label: 'Visão geral' },
-  { id: 'users', label: 'Utilizadores' },
+  { id: 'users', label: 'Usuários' },
   { id: 'ranking', label: 'Ranking' },
   { id: 'reports', label: 'Gráficos' },
   { id: 'settings', label: 'Configurações' },
@@ -16,7 +16,7 @@ const TAB_ITEMS = [
 const TYPE_LABELS = {
   aluno: 'Aluno',
   professor: 'Professor(a)',
-  direcao: 'Direcao',
+  direcao: 'Direção',
   administrativo: 'Administrativo',
   outra_escola: 'Outra escola',
   visitante: 'Visitante',
@@ -24,24 +24,24 @@ const TYPE_LABELS = {
 
 const ROLE_LABELS = {
   admin: 'Admin',
-  user: 'Usuario',
+  user: 'Usuário',
 };
 
 function mapError(code) {
   const messages = {
-    email_in_use: 'Esse e-mail ja esta em uso.',
-    invalid_email: 'Informe um e-mail valido.',
-    invalid_name: 'Informe um nome valido.',
+    email_in_use: 'Esse e-mail já está em uso.',
+    invalid_email: 'Informe um e-mail válido.',
+    invalid_name: 'Informe um nome válido.',
     invalid_password: 'A senha deve ter pelo menos 6 caracteres.',
-    invalid_role: 'Role invalida.',
-    user_not_found: 'Usuario nao encontrado.',
-    unauthorized: 'Sua sessao admin expirou. Entre novamente.',
+    invalid_role: 'Função inválida.',
+    user_not_found: 'Usuário não encontrado.',
+    unauthorized: 'Sua sessão admin expirou. Entre novamente.',
     admin_only: 'Acesso restrito ao painel administrativo.',
-    cannot_delete_self: 'Voce nao pode excluir o proprio admin logado.',
-    cannot_demote_self: 'Voce nao pode remover seu proprio acesso admin.',
+    cannot_delete_self: 'Você não pode excluir o próprio admin logado.',
+    cannot_demote_self: 'Você não pode remover seu próprio acesso admin.',
   };
 
-  return messages[code] || 'Nao foi possivel concluir a operacao.';
+  return messages[code] || 'Não foi possível concluir a operação.';
 }
 
 async function fetchAdminJson(path, options) {
@@ -78,7 +78,7 @@ function formatType(user) {
     return `Outra escola - ${user.subtipo}`;
   }
 
-  return TYPE_LABELS[user.participantType] || 'Nao informado';
+  return TYPE_LABELS[user.participantType] || 'Não informado';
 }
 
 function formatMeta(user) {
@@ -243,14 +243,14 @@ export default function AdminPanelPage() {
 
   async function handleDeleteUser(user) {
     const confirmed = window.confirm(
-      `Excluir ${user.name}? Essa acao remove o usuario e seus registros vinculados.`
+      `Excluir ${user.name}? Essa ação remove o usuário e seus registros vinculados.`
     );
     if (!confirmed) return;
 
     try {
       await fetchAdminJson(`/api/admin/users/${user.id}`, { method: 'DELETE' });
       closePanels();
-      setStatus('Usuario excluido com sucesso.');
+      setStatus('Usuário excluído com sucesso.');
       await reloadAll(true);
     } catch (deleteError) {
       setStatus(deleteError.message);
@@ -280,7 +280,7 @@ export default function AdminPanelPage() {
       });
 
       closePanels();
-      setStatus(`Usuario ${response.user.name} atualizado com sucesso.`);
+      setStatus(`Usuário ${response.user.name} atualizado com sucesso.`);
       await reloadAll(true);
       await refreshAdmin();
     } catch (saveError) {
@@ -295,7 +295,7 @@ export default function AdminPanelPage() {
     setPasswordStatus('');
 
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordStatus('A confirmacao da nova senha nao confere.');
+      setPasswordStatus('A confirmação da nova senha não confere.');
       return;
     }
 
@@ -403,11 +403,11 @@ export default function AdminPanelPage() {
           <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
             <div className={styles.modalHeader}>
               <div>
-                <h2>{detailUser ? 'Detalhes do usuario' : 'Editar usuario'}</h2>
+                <h2>{detailUser ? 'Detalhes do usuário' : 'Editar usuário'}</h2>
                 <p>
                   {detailUser
-                    ? 'Visualizacao rapida dos dados cadastrados.'
-                    : 'Atualize os campos essenciais com seguranca.'}
+                    ? 'Visualização rápida dos dados cadastrados.'
+                    : 'Atualize os campos essenciais com segurança.'}
                 </p>
               </div>
               <Button type="button" variant="secondary" size="sm" onClick={closePanels}>
@@ -436,8 +436,8 @@ function OverviewTab({ dashboard }) {
   return (
     <section className={styles.section}>
       <div className={styles.cardGrid}>
-        <MetricCard label="Usuarios" value={dashboard.summary.totalUsers} />
-        <MetricCard label="Acoes" value={dashboard.summary.totalActions} />
+        <MetricCard label="Usuários" value={dashboard.summary.totalUsers} />
+        <MetricCard label="Ações" value={dashboard.summary.totalActions} />
         <MetricCard label="Pontos" value={dashboard.summary.totalPoints} />
         <MetricCard label="Alunos" value={dashboard.summary.studentCount} />
         <MetricCard label="Professores" value={dashboard.summary.teacherCount} />
@@ -445,17 +445,17 @@ function OverviewTab({ dashboard }) {
       </div>
 
       <div className={styles.duoGrid}>
-        <ChartCard title="Top usuarios por pontos" subtitle="Resumo do ranking global">
+        <ChartCard title="Top usuários por pontos" subtitle="Resumo do ranking global">
           <BarChart items={dashboard.topUsers} valueKey="totalPoints" />
         </ChartCard>
 
-        <ChartCard title="Participantes por tipo" subtitle="Distribuicao geral">
+        <ChartCard title="Participantes por tipo" subtitle="Distribuição geral">
           <DonutChart items={dashboard.charts.typeBreakdown} />
         </ChartCard>
       </div>
 
       <div className={styles.duoGrid}>
-        <ChartCard title="Acoes por categoria" subtitle="Categorias com mais registros">
+        <ChartCard title="Ações por categoria" subtitle="Categorias com mais registros">
           <BarChart items={dashboard.charts.actionCategoryBreakdown} />
         </ChartCard>
 
@@ -481,7 +481,7 @@ function OverviewTab({ dashboard }) {
 function UsersTab({ users, search, setSearch, onView, onEdit, onDelete }) {
   return (
     <section className={styles.section}>
-      <PanelCard title="Usuarios cadastrados" subtitle="CRUD conectado ao banco real">
+      <PanelCard title="Usuários cadastrados" subtitle="CRUD conectado ao banco real">
         <div className={styles.filtersSingle}>
           <input
             value={search}
@@ -503,7 +503,7 @@ function UsersTab({ users, search, setSearch, onView, onEdit, onDelete }) {
                 <th>Turma</th>
                 <th>Pontos</th>
                 <th>Role</th>
-                <th>Acoes</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -589,7 +589,7 @@ function RankingTab({ ranking, filters, setFilters, availableCities, availableTy
                 <strong>{user.name}</strong>
                 <span className={styles.rankPoints}>{user.totalPoints} pts</span>
               </div>
-              <p>{formatMeta(user) || 'Sem informacoes adicionais'}</p>
+              <p>{formatMeta(user) || 'Sem informações adicionais'}</p>
             </div>
           ))}
         </div>
@@ -602,24 +602,24 @@ function ReportsTab({ stats }) {
   return (
     <section className={styles.section}>
       <div className={styles.duoGrid}>
-        <ChartCard title="Usuarios por tipo" subtitle="Comparativo entre perfis">
+        <ChartCard title="Usuários por tipo" subtitle="Comparativo entre perfis">
           <BarChart items={stats.typeBreakdown} />
         </ChartCard>
-        <ChartCard title="Usuarios por escola" subtitle="Top escolas cadastradas">
+        <ChartCard title="Usuários por escola" subtitle="Top escolas cadastradas">
           <BarChart items={stats.schoolBreakdown} />
         </ChartCard>
       </div>
 
       <div className={styles.duoGrid}>
-        <ChartCard title="Usuarios por cidade" subtitle="Top cidades">
+        <ChartCard title="Usuários por cidade" subtitle="Top cidades">
           <BarChart items={stats.cityBreakdown} />
         </ChartCard>
-        <ChartCard title="Faixas de pontuacao" subtitle="Distribuicao de pontos">
+        <ChartCard title="Faixas de pontuação" subtitle="Distribuição de pontos">
           <BarChart items={stats.scoreBreakdown} />
         </ChartCard>
       </div>
 
-      <ChartCard title="Acoes por categoria" subtitle="Uso das categorias no sistema">
+      <ChartCard title="Ações por categoria" subtitle="Uso das categorias no sistema">
         <BarChart items={stats.actionCategoryBreakdown} />
       </ChartCard>
     </section>
@@ -639,7 +639,7 @@ function SettingsTab({
   return (
     <section className={styles.section}>
       <div className={styles.duoGrid}>
-        <PanelCard title="Admin logado" subtitle="Informacoes da conta atual">
+        <PanelCard title="Admin logado" subtitle="Informações da conta atual">
           <div className={styles.infoList}>
             <DetailItem label="Nome" value={adminUser?.name || '-'} />
             <DetailItem label="E-mail" value={adminUser?.email || '-'} />
@@ -653,13 +653,13 @@ function SettingsTab({
         <PanelCard title="Sistema" subtitle="Resumo operacional">
           <div className={styles.infoList}>
             <DetailItem label="Banco" value="SQLite local" />
-            <DetailItem label="Usuarios no ranking" value={String(dashboard.summary.totalUsers)} />
-            <DetailItem label="Acoes registradas" value={String(dashboard.summary.totalActions)} />
+            <DetailItem label="Usuários no ranking" value={String(dashboard.summary.totalUsers)} />
+            <DetailItem label="Ações registradas" value={String(dashboard.summary.totalActions)} />
           </div>
         </PanelCard>
       </div>
 
-      <PanelCard title="Alterar senha admin" subtitle="Troque a senha padrao com seguranca">
+      <PanelCard title="Alterar senha admin" subtitle="Troque a senha padrão com segurança">
         <form className={styles.passwordForm} onSubmit={onSubmit}>
           <input
             type="password"
@@ -753,7 +753,7 @@ function UserEditForm({ form, setForm, saving, onCancel, onSubmit }) {
       <label>
         <span>Tipo</span>
         <select value={form.tipo} onChange={(event) => setForm((current) => ({ ...current, tipo: event.target.value }))}>
-          <option value="">Nao informado</option>
+          <option value="">Não informado</option>
           {Object.entries(TYPE_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -768,7 +768,7 @@ function UserEditForm({ form, setForm, saving, onCancel, onSubmit }) {
       <label>
         <span>Role</span>
         <select value={form.role} onChange={(event) => setForm((current) => ({ ...current, role: event.target.value }))}>
-          <option value="user">Usuario</option>
+          <option value="user">Usuário</option>
           <option value="admin">Admin</option>
         </select>
       </label>
@@ -778,7 +778,7 @@ function UserEditForm({ form, setForm, saving, onCancel, onSubmit }) {
           Cancelar
         </Button>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar alteracoes'}
+          {saving ? 'Salvando...' : 'Salvar alterações'}
         </Button>
       </div>
     </form>

@@ -98,6 +98,31 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div className={styles.quickActions}>
+          <h2 className={styles.sectionTitle}>🚀 Ações rápidas</h2>
+          {recentLogs.length === 0 && (
+            <p className={styles.quickHint}>
+              Dica: comece por uma ação simples de água, energia ou resíduos.
+            </p>
+          )}
+          <div className={styles.quickGrid}>
+            {ACTIONS_CATALOG.slice(0, 4).map((action) => (
+              <button
+                key={action.id}
+                className={styles.quickBtn}
+                onClick={() => navigate('/acoes')}
+              >
+                <span className={styles.quickIcon}>{action.icon}</span>
+                <span className={styles.quickLabel}>{action.title}</span>
+                <span className={styles.quickPts}>{action.points} pts</span>
+              </button>
+            ))}
+          </div>
+          <Button variant="secondary" fullWidth onClick={() => navigate('/acoes')} size="sm">
+            Ver todas as ações →
+          </Button>
+        </div>
+
         <div className={styles.statsGrid}>
           <StatCard
             emoji={levelInfo.icon}
@@ -137,7 +162,7 @@ export default function DashboardPage() {
                 <p className={styles.goalCopy}>
                   {weekly.remaining > 0
                     ? `Faltam ${weekly.remaining} pontos para bater a meta desta semana.`
-                    : 'Meta semanal concluida. Continue acumulando impacto.'}
+                    : 'Meta semanal concluída. Continue acumulando impacto.'}
                 </p>
               </div>
               <div className={styles.goalScore}>
@@ -151,10 +176,10 @@ export default function DashboardPage() {
           <div className={styles.streakCard}>
             <div className={styles.streakBadge}>🔥</div>
             <div className={styles.streakText}>
-              <h2 className={styles.sectionTitle}>Sequencia ativa</h2>
+              <h2 className={styles.sectionTitle}>Sequência ativa</h2>
               <strong>{insights.currentStreak} {pluralize(insights.currentStreak, 'dia seguido', 'dias seguidos')}</strong>
               <span>
-                Melhor sequencia: {insights.bestStreak} {pluralize(insights.bestStreak, 'dia', 'dias')}
+                Melhor sequência: {insights.bestStreak} {pluralize(insights.bestStreak, 'dia', 'dias')}
               </span>
             </div>
           </div>
@@ -201,17 +226,17 @@ export default function DashboardPage() {
           </div>
 
           <div className={styles.categoryCard}>
-            <h2 className={styles.sectionTitle}>Comparacao por categorias</h2>
+            <h2 className={styles.sectionTitle}>Comparação por categorias</h2>
             <p className={styles.categoryCopy}>
               {favoriteCategory
-                ? `Seu foco ambiental atual esta em ${favoriteCategory.label.toLowerCase()}.`
-                : 'Seu foco ambiental aparecera aqui apos as primeiras acoes.'}
+                ? `Seu foco ambiental atual está em ${favoriteCategory.label.toLowerCase()}.`
+                : 'Seu foco ambiental aparecerá aqui após as primeiras ações.'}
             </p>
             {insights.categoryBreakdown.length === 0 ? (
               <div className={styles.categoryEmpty}>
-                <p>Comece registrando uma acao de agua ou energia.</p>
+                <p>Comece registrando uma ação de água ou energia.</p>
                 <Button size="sm" onClick={() => navigate('/acoes')}>
-                  Registrar primeira acao
+                  Registrar primeira ação
                 </Button>
               </div>
             ) : (
@@ -227,67 +252,40 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className={styles.bottomGrid}>
-          <div className={styles.recentCard}>
-            <h2 className={styles.sectionTitle}>⏱ Historico recente</h2>
-            {insights.recentActions.length === 0 ? (
-              <div className={styles.emptyMsg}>
-                <span>🌱</span>
-                <p>Comece registrando uma acao de agua ou energia para iniciar seu historico.</p>
-                <Button size="sm" onClick={() => navigate('/acoes')}>
-                  Registrar agora
-                </Button>
-              </div>
-            ) : (
-              <ul className={styles.logList}>
-                {insights.recentActions.map((log) => {
-                  const action = getActionById(log.actionId);
-                  return (
-                    <li key={log.id} className={styles.logItem}>
-                      <span className={styles.logIcon}>{action?.icon || '✅'}</span>
-                      <div className={styles.logInfo}>
-                        <span className={styles.logTitle}>{action?.title || log.actionId}</span>
-                        <div className={styles.logMetaRow}>
-                          {log.category && (
-                            <Badge color={CATEGORY_BADGE_COLOR[log.category] || 'gray'}>
-                              {log.categoryLabel || log.category}
-                            </Badge>
-                          )}
-                          <span className={styles.logTime}>{formatDateTime(log.createdAt)}</span>
-                        </div>
-                      </div>
-                      <span className={styles.logPoints}>+{log.pointsEarned} pts</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-
-          <div className={styles.quickActions}>
-            <h2 className={styles.sectionTitle}>🚀 Ações rápidas</h2>
-            {recentLogs.length === 0 && (
-              <p className={styles.quickHint}>
-                Dica: comece por uma acao simples de agua, energia ou residuos.
-              </p>
-            )}
-            <div className={styles.quickGrid}>
-              {ACTIONS_CATALOG.slice(0, 4).map((action) => (
-                <button
-                  key={action.id}
-                  className={styles.quickBtn}
-                  onClick={() => navigate('/acoes')}
-                >
-                  <span className={styles.quickIcon}>{action.icon}</span>
-                  <span className={styles.quickLabel}>{action.title}</span>
-                  <span className={styles.quickPts}>{action.points} pts</span>
-                </button>
-              ))}
+        <div className={styles.recentCard}>
+          <h2 className={styles.sectionTitle}>⏱ Histórico recente</h2>
+          {insights.recentActions.length === 0 ? (
+            <div className={styles.emptyMsg}>
+              <span>🌱</span>
+              <p>Comece registrando uma ação de água ou energia para iniciar seu histórico.</p>
+              <Button size="sm" onClick={() => navigate('/acoes')}>
+                Registrar agora
+              </Button>
             </div>
-            <Button variant="secondary" fullWidth onClick={() => navigate('/acoes')} size="sm">
-              Ver todas as ações →
-            </Button>
-          </div>
+          ) : (
+            <ul className={styles.logList}>
+              {insights.recentActions.map((log) => {
+                const action = getActionById(log.actionId);
+                return (
+                  <li key={log.id} className={styles.logItem}>
+                    <span className={styles.logIcon}>{action?.icon || '✅'}</span>
+                    <div className={styles.logInfo}>
+                      <span className={styles.logTitle}>{action?.title || log.actionId}</span>
+                      <div className={styles.logMetaRow}>
+                        {log.category && (
+                          <Badge color={CATEGORY_BADGE_COLOR[log.category] || 'gray'}>
+                            {log.categoryLabel || log.category}
+                          </Badge>
+                        )}
+                        <span className={styles.logTime}>{formatDateTime(log.createdAt)}</span>
+                      </div>
+                    </div>
+                    <span className={styles.logPoints}>+{log.pointsEarned} pts</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
       </div>
     </Layout>

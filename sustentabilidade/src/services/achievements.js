@@ -7,8 +7,8 @@ const ACTION_TO_CATEGORY = Object.fromEntries(
 export const ACHIEVEMENTS = [
   {
     id: 'first-action',
-    title: 'Primeira acao',
-    description: 'Registre sua primeira acao sustentavel.',
+    title: 'Primeira ação',
+    description: 'Registre sua primeira ação sustentável.',
     icon: '🌱',
     color: 'green',
     check: ({ totalActions }) => totalActions >= 1,
@@ -16,15 +16,15 @@ export const ACHIEVEMENTS = [
   {
     id: 'five-actions',
     title: 'Ritmo inicial',
-    description: 'Complete 5 acoes registradas.',
+    description: 'Complete 5 ações registradas.',
     icon: '📝',
     color: 'blue',
     check: ({ totalActions }) => totalActions >= 5,
   },
   {
     id: 'ten-actions',
-    title: 'Habito em formacao',
-    description: 'Complete 10 acoes registradas.',
+    title: 'Hábito em formação',
+    description: 'Complete 10 ações registradas.',
     icon: '🚀',
     color: 'teal',
     check: ({ totalActions }) => totalActions >= 10,
@@ -47,8 +47,8 @@ export const ACHIEVEMENTS = [
   },
   {
     id: 'streak-3',
-    title: 'Constancia verde',
-    description: 'Fique 3 dias seguidos registrando acoes.',
+    title: 'Constância verde',
+    description: 'Fique 3 dias seguidos registrando ações.',
     icon: '🔥',
     color: 'red',
     check: ({ bestStreak }) => bestStreak >= 3,
@@ -56,15 +56,15 @@ export const ACHIEVEMENTS = [
   {
     id: 'streak-7',
     title: 'Semana completa',
-    description: 'Fique 7 dias seguidos registrando acoes.',
+    description: 'Fique 7 dias seguidos registrando ações.',
     icon: '🏆',
     color: 'purple',
     check: ({ bestStreak }) => bestStreak >= 7,
   },
   {
     id: 'first-water',
-    title: 'Guardiao da agua',
-    description: 'Registre sua primeira acao de agua.',
+    title: 'Guardião da água',
+    description: 'Registre sua primeira ação de água.',
     icon: '💧',
     color: 'blue',
     check: ({ categoryCounts }) => (categoryCounts.agua || 0) >= 1,
@@ -72,7 +72,7 @@ export const ACHIEVEMENTS = [
   {
     id: 'first-energy',
     title: 'Energia consciente',
-    description: 'Registre sua primeira acao de energia.',
+    description: 'Registre sua primeira ação de energia.',
     icon: '⚡',
     color: 'yellow',
     check: ({ categoryCounts }) => (categoryCounts.energia || 0) >= 1,
@@ -80,7 +80,7 @@ export const ACHIEVEMENTS = [
   {
     id: 'first-residues',
     title: 'Mestre da reciclagem',
-    description: 'Registre sua primeira acao de residuos.',
+    description: 'Registre sua primeira ação de resíduos.',
     icon: '♻️',
     color: 'green',
     check: ({ categoryCounts }) => (categoryCounts.residuos || 0) >= 1,

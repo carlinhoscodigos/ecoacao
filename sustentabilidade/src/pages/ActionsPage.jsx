@@ -30,36 +30,37 @@ export default function ActionsPage() {
   async function handleRegister(action) {
     const result = await registerAction(action);
     setFeedback(action.id);
+    let toastDismissMs = 2600;
     if (result) {
-      const messages = [
-        `+${result.pointsEarned} pontos adicionados`,
-        'Acao registrada com sucesso.',
-      ];
+      const extras = [];
 
       if (result.streakIncreased) {
-        messages.push(
-          `Streak atualizada para ${result.currentStreak} ${result.currentStreak === 1 ? 'dia' : 'dias'}.`
+        extras.push(
+          `Sequência · ${result.currentStreak} ${result.currentStreak === 1 ? 'dia' : 'dias'}`
         );
       }
 
       if (result.unlockedAchievements?.length > 0) {
         const unlocked = result.unlockedAchievements[0];
-        messages.push(`Nova conquista: ${unlocked.icon} ${unlocked.title}.`);
+        extras.push(`Conquista · ${unlocked.icon} ${unlocked.title}`);
       }
 
       if (result.positionGain > 0) {
-        messages.push(
-          `Voce subiu ${result.positionGain} ${result.positionGain === 1 ? 'posicao' : 'posicoes'} no ranking.`
+        extras.push(
+          `Ranking · subiu ${result.positionGain} ${result.positionGain === 1 ? 'posição' : 'posições'}`
         );
       }
 
+      if (extras.length > 0) toastDismissMs = 3800;
+
       setToast({
-        title: 'Boa acao registrada',
-        messages,
+        title: 'Ação registrada',
+        pointsLine: `+${result.pointsEarned} pts`,
+        extras,
       });
     }
     setTimeout(() => setFeedback(null), 2000);
-    setTimeout(() => setToast(null), 2800);
+    setTimeout(() => setToast(null), toastDismissMs);
   }
 
   return (
@@ -67,12 +68,19 @@ export default function ActionsPage() {
       <div className={styles.page}>
         {toast && (
           <div className={styles.toast} role="status" aria-live="polite">
-            <strong>{toast.title}</strong>
-            <div className={styles.toastMessages}>
-              {toast.messages.map((message) => (
-                <span key={message}>{message}</span>
-              ))}
+            <div className={styles.toastHead}>
+              <span className={styles.toastTitle}>{toast.title}</span>
+              <span className={styles.toastPoints}>{toast.pointsLine}</span>
             </div>
+            {toast.extras?.length > 0 && (
+              <div className={styles.toastExtras}>
+                {toast.extras.map((line, index) => (
+                  <span key={`${line}-${index}`} className={styles.toastExtra}>
+                    {line}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

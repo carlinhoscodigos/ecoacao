@@ -314,12 +314,6 @@
   color: var(--color-text-muted);
 }
 
-.bottomGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
 .recentCard,
 .quickActions {
   background: var(--color-bg-card);
@@ -429,7 +423,6 @@
 @media (max-width: 900px) {
   .statsGrid { grid-template-columns: repeat(2, 1fr); }
   .duoTopGrid { grid-template-columns: 1fr; }
-  .bottomGrid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -520,10 +513,6 @@
 
   .achievementGrid {
     grid-template-columns: 1fr;
-  }
-
-  .bottomGrid {
-    gap: 16px;
   }
 
   .recentCard,

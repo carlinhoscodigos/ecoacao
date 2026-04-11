@@ -15,10 +15,10 @@ function mapAdminError(code) {
     admin_only: 'Acesso restrito ao painel administrativo.',
     invalid_password: 'A nova senha deve ter pelo menos 6 caracteres.',
     missing_password_fields: 'Preencha a senha atual e a nova senha.',
-    unauthorized: 'Sua sessao admin expirou. Entre novamente.',
+    unauthorized: 'Sua sessão admin expirou. Entre novamente.',
   };
 
-  return messages[code] || 'Nao foi possivel concluir a operacao.';
+  return messages[code] || 'Não foi possível concluir a operação.';
 }
 
 export function AdminProvider({ children }) {
