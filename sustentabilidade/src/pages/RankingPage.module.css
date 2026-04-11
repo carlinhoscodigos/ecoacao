@@ -206,6 +206,91 @@
 }
 
 @media (max-width: 600px) {
-  .podium { gap: 6px; padding: 10px; }
-  .podiumSlot { max-width: 110px; }
+  .page {
+    gap: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: var(--font-size-xl);
+    line-height: 1.1;
+  }
+
+  .myPosition {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 14px 16px;
+  }
+
+  .myPosNum {
+    font-size: 2rem;
+  }
+
+  .list {
+    order: 2;
+    gap: 10px;
+  }
+
+  .podium {
+    order: 3;
+    gap: 8px;
+    padding: 12px 8px 8px;
+  }
+
+  .podiumSlot {
+    gap: 4px;
+    max-width: 110px;
+    min-width: 0;
+  }
+
+  .podiumName {
+    font-size: var(--font-size-xs);
+  }
+
+  .podiumLevel {
+    font-size: 0.68rem;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  .podiumEscola {
+    display: none;
+  }
+
+  .podiumPts {
+    font-size: var(--font-size-sm);
+  }
+
+  .pos1 .podiumBlock { height: 86px !important; }
+  .pos2 .podiumBlock { height: 68px !important; }
+  .pos3 .podiumBlock { height: 56px !important; }
+
+  .row {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .rowPos {
+    width: 30px;
+  }
+
+  .rowName {
+    font-size: var(--font-size-sm);
+  }
+
+  .rowMeta {
+    line-height: 1.4;
+  }
+
+  .rowPoints {
+    min-width: 54px;
+    font-size: var(--font-size-lg);
+    text-align: right;
+  }
 }

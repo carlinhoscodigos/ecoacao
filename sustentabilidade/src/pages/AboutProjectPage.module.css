@@ -167,7 +167,55 @@
 }
 
 @media (max-width: 600px) {
-  .grid { grid-template-columns: 1fr; }
-  .expData { flex-direction: column; }
+  .page {
+    gap: 20px;
+  }
+
+  .hero {
+    padding: 24px 16px 14px;
+  }
+
+  .heroIcon {
+    font-size: 2.4rem;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: var(--font-size-xl);
+    line-height: 1.15;
+  }
+
+  .heroSub {
+    margin-top: 4px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    gap: 8px;
+    padding: 16px;
+  }
+
+  .cardTitle {
+    font-size: var(--font-size-base);
+  }
+
+  .cardBody {
+    line-height: 1.6;
+  }
+
+  .expData {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .expGroup {
+    gap: 6px;
+    padding: 10px;
+  }
+
   .expDivider { display: none; }
 }

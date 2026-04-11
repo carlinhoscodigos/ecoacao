@@ -2,7 +2,7 @@ import { API_BASE_URL, apiUrl } from '../config/api.js';
 import { STORAGE_KEYS } from '../data/constants.js';
 
 export function hasApiConfigured() {
-  return Boolean(API_BASE_URL);
+  return import.meta.env.PROD || Boolean(API_BASE_URL);
 }
 
 export function getAuthToken() {

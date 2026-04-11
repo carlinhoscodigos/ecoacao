@@ -1,3 +1,12 @@
+/** Nome da escola principal do projeto (fluxo interno, exceto “Outra escola”). */
+export const ESCOLA_PRINCIPAL_NOME = 'Colégio Barro Vermelho';
+
+/** Cidade fixa para quem pertence à escola principal (Aluno, Professor, Direção, Administrativo, Visitante local). */
+export const CIDADE_ESCOLA_PRINCIPAL = Object.freeze({
+  nome: 'Rio Pardo',
+  codigoIbge: 4317301,
+});
+
 export const STORAGE_KEYS = {
   USERS: 'ecoacao_users',
   CURRENT_USER: 'ecoacao_current_user',

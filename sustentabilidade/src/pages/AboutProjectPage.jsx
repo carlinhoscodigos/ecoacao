@@ -1,14 +1,10 @@
-import { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import Layout from '../components/layout/Layout';
-import Button from '../components/common/Button';
 import { ACTIONS_CATALOG } from '../data/actions';
-import { buildDemoData } from '../services/demo';
 import styles from './AboutProjectPage.module.css';
 
 export default function AboutProjectPage() {
-  const { resetDemo, users, logs, ranking, stats } = useApp();
-  const [confirmReset, setConfirmReset] = useState(false);
+  const { users, logs, ranking, stats } = useApp();
 
   function calcAvgActionsPerUser() {
     const n = stats.userCount || users.length;
@@ -77,45 +73,6 @@ export default function AboutProjectPage() {
             <p>O sistema oferece <strong>{ACTIONS_CATALOG.length} ações sustentáveis</strong> categorizadas em áreas como água, energia, resíduos, transporte, alimentação e reutilização.</p>
             <p style={{ marginTop: 6 }}>Cada ação possui uma pontuação baseada em seu impacto ambiental estimado.</p>
           </InfoCard>
-
-          <InfoCard icon="🚀" title="Próximos Passos">
-            <ul className={styles.methodList}>
-              <li>Autenticação real com Firebase para dados entre dispositivos</li>
-              <li>Dashboard analítico para professores</li>
-              <li>Conquistas e medalhas por consistência</li>
-              <li>Metas coletivas por escola</li>
-            </ul>
-          </InfoCard>
-        </div>
-
-        <div className={styles.resetSection}>
-          <h2 className={styles.resetTitle}>⚙️ Ferramentas de Demonstração</h2>
-          <p className={styles.resetDesc}>
-            Use os botões abaixo para popular dados fictícios para a demonstração ou limpar tudo para recomeçar do zero.
-          </p>
-          <div className={styles.demoRow}>
-            <Button
-              variant="accent"
-              onClick={() => { buildDemoData(); window.location.reload(); }}
-            >
-              🎭 Carregar dados de demonstração
-            </Button>
-            {!confirmReset ? (
-              <Button variant="danger" onClick={() => setConfirmReset(true)}>
-                🗑 Resetar todos os dados
-              </Button>
-            ) : (
-              <div className={styles.confirmRow}>
-                <p className={styles.confirmMsg}>⚠️ Tem certeza? Todos os dados serão apagados.</p>
-                <Button variant="danger" onClick={() => { resetDemo(); setConfirmReset(false); }}>
-                  Sim, apagar tudo
-                </Button>
-                <Button variant="secondary" onClick={() => setConfirmReset(false)}>
-                  Cancelar
-                </Button>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </Layout>

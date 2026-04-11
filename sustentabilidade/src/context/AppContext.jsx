@@ -7,7 +7,6 @@ import {
   saveUser,
   addLog,
   getAllLogs,
-  resetAllData,
   getCurrentUser,
   setCurrentUser as persistUser,
   clearCurrentUser,
@@ -21,6 +20,7 @@ import {
   setAuthToken,
 } from '../services/apiClient.js';
 import { runLocalStorageMigrationOnce } from '../services/migrateStorage.js';
+import { ESCOLA_PRINCIPAL_NOME, CIDADE_ESCOLA_PRINCIPAL } from '../data/constants.js';
 
 const OUTRA_ESCOLA_SUBTIPO_LABELS = {
   aluno: 'Aluno',
@@ -182,12 +182,13 @@ export function AppProvider({ children }) {
         ? classGroup.trim()
         : '';
 
-    const escolaFinal =
-      participantType === 'aluno'
-        ? 'Colégio Barro Vermelho'
-        : escola?.trim() || '';
+    const escolaPrincipal =
+      participantType !== 'outra_escola' ? ESCOLA_PRINCIPAL_NOME : escola?.trim() || '';
 
-    const cidadeSigla = cidade?.nome ? gerarSiglaCidade(cidade.nome) : '';
+    const cidadeRef =
+      participantType !== 'outra_escola' ? CIDADE_ESCOLA_PRINCIPAL : cidade;
+
+    const cidadeSigla = cidadeRef?.nome ? gerarSiglaCidade(cidadeRef.nome) : '';
 
     const user = {
       id,
@@ -196,9 +197,12 @@ export function AppProvider({ children }) {
       password,
       participantType: participantType || '',
       classGroup: displayGroup,
-      ...(cidade && { cidade: cidade.nome, codigoIbgeCidade: cidade.codigoIbge }),
+      ...(cidadeRef && {
+        cidade: cidadeRef.nome,
+        codigoIbgeCidade: cidadeRef.codigoIbge,
+      }),
       ...(cidadeSigla && { cidadeSigla }),
-      ...(escolaFinal && { escola: escolaFinal }),
+      ...(escolaPrincipal && { escola: escolaPrincipal }),
       ...(participantType === 'outra_escola' && subtipoLabel && { subtipo: subtipoLabel }),
       ...(turmaValue && { turma: turmaValue }),
       ...(disciplina && { disciplina: disciplina.trim() }),
@@ -307,17 +311,6 @@ export function AppProvider({ children }) {
     }
   }
 
-  async function resetDemo() {
-    if (hasApiConfigured()) {
-      setAuthToken(null);
-      await refreshApi();
-      return;
-    }
-    resetAllData();
-    setCurrentUserState(null);
-    refreshLocal();
-  }
-
   function getTodayLogs() {
     if (!currentUser) return [];
     const today = new Date().toDateString();
@@ -363,7 +356,6 @@ export function AppProvider({ children }) {
         loginUser,
         registerAction,
         logout,
-        resetDemo,
         refresh,
         getTodayLogs,
         getUserLogs,

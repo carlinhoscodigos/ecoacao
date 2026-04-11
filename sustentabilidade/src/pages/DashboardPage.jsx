@@ -26,10 +26,7 @@ function isTurmaFromClassGroup(user) {
 function buildUserMetaLine(user) {
   const escola = (user?.escola || user?.nomeDaEscola || '').trim();
   const siglaRaw = (user?.cidadeSigla || '').trim();
-  const sigla = (
-    siglaRaw.toUpperCase() ||
-    (user?.cidade ? gerarSiglaCidade(user.cidade) : '')
-  );
+  const sigla = siglaRaw.toUpperCase() || (user?.cidade ? gerarSiglaCidade(user.cidade) : '');
   const turmaVal = isTurmaFromClassGroup(user) ? (user?.classGroup || '').trim() : '';
 
   if (turmaVal && !escola && !sigla) {
@@ -70,15 +67,15 @@ export default function DashboardPage() {
             <Avatar name={currentUser.name} size={52} />
             <div>
               <h1 className={styles.greeting}>Olá, {currentUser.name.split(' ')[0]}! 👋</h1>
-              {userMetaLine && (
-                <p className={styles.meta}>{userMetaLine}</p>
-              )}
+              {userMetaLine && <p className={styles.meta}>{userMetaLine}</p>}
             </div>
           </div>
 
-          <Button onClick={() => navigate('/acoes')} size="lg" icon="✅">
-            Registrar Ação
-          </Button>
+          <div className={styles.primaryCta}>
+            <Button onClick={() => navigate('/acoes')} size="lg" icon="✅">
+              Registrar Ação
+            </Button>
+          </div>
         </div>
 
         <div className={styles.statsGrid}>
@@ -118,11 +115,9 @@ export default function DashboardPage() {
             <div>
               <strong>{levelInfo.title}</strong>
               {levelInfo.next ? (
-                <span className={styles.levelNext}>
-                  {' — '}Próximo nível em {levelInfo.next - totalPoints} pontos
-                </span>
+                <span className={styles.levelNext}> {' - '}Próximo nível em {levelInfo.next - totalPoints} pontos</span>
               ) : (
-                <span className={styles.levelNext}> — Nível máximo! 🎉</span>
+                <span className={styles.levelNext}> - Nível máximo! 🎉</span>
               )}
             </div>
           </div>
@@ -140,7 +135,9 @@ export default function DashboardPage() {
               <div className={styles.emptyMsg}>
                 <span>🌱</span>
                 <p>Nenhuma ação registrada hoje ainda.</p>
-                <Button size="sm" onClick={() => navigate('/acoes')}>Registrar agora</Button>
+                <Button size="sm" onClick={() => navigate('/acoes')}>
+                  Registrar agora
+                </Button>
               </div>
             ) : (
               <ul className={styles.logList}>

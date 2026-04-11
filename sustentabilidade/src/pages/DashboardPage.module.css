@@ -12,6 +12,14 @@
   flex-wrap: wrap;
 }
 
+.primaryCta {
+  flex-shrink: 0;
+}
+
+.primaryCta > button {
+  box-shadow: var(--shadow-sm);
+}
+
 .userInfo {
   display: flex;
   align-items: center;
@@ -196,7 +204,98 @@
   .bottomGrid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 640px) {
+  .page {
+    gap: 20px;
+  }
+
+  .top {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .userInfo {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .greeting {
+    line-height: 1.1;
+  }
+
+  .meta {
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .primaryCta,
+  .primaryCta > button {
+    width: 100%;
+  }
+
+  .primaryCta > button {
+    min-height: 54px;
+    padding: 0 20px;
+  }
+
+  .statsGrid {
+    gap: 12px;
+  }
+
+  .statCard {
+    min-height: 122px;
+    padding: 16px 14px;
+    gap: 5px;
+  }
+
+  .statEmoji {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+  }
+
+  .statValue {
+    font-size: 1.65rem;
+    line-height: 1.05;
+  }
+
+  .statSub {
+    line-height: 1.35;
+  }
+
+  .levelCard {
+    padding: 16px;
+  }
+
+  .bottomGrid {
+    gap: 16px;
+  }
+
+  .recentCard,
+  .quickActions {
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .emptyMsg {
+    padding: 16px;
+  }
+
+  .quickGrid {
+    gap: 8px;
+  }
+
+  .quickBtn {
+    min-height: 92px;
+    padding: 12px 10px;
+  }
+}
+
 @media (max-width: 500px) {
   .statsGrid { grid-template-columns: 1fr 1fr; }
   .greeting { font-size: var(--font-size-xl); }
+}
+
+@media (max-width: 360px) {
+  .statsGrid { grid-template-columns: 1fr; }
 }

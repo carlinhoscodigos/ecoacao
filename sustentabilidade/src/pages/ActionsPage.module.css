@@ -163,11 +163,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-top: 4px;
 }
 
 .registerBtn {
-  padding: 6px 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  min-width: 112px;
+  padding: 8px 16px;
   border-radius: var(--radius-full);
   font-size: var(--font-size-sm);
   font-weight: 700;
@@ -187,5 +193,65 @@
 }
 
 @media (max-width: 600px) {
-  .grid { grid-template-columns: 1fr; }
+  .page {
+    gap: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: var(--font-size-xl);
+    line-height: 1.1;
+  }
+
+  .todaySummary {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+  }
+
+  .todayCount {
+    font-size: 2.2rem;
+  }
+
+  .todayLabel {
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    opacity: 0.95;
+  }
+
+  .filters {
+    gap: 10px 8px;
+  }
+
+  .filterBtn {
+    min-height: 38px;
+    padding: 6px 14px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .card {
+    gap: 12px;
+    padding: 18px 16px;
+  }
+
+  .actionDesc {
+    line-height: 1.45;
+  }
+
+  .registerBtn {
+    min-height: 44px;
+    min-width: 120px;
+    padding: 8px 18px;
+  }
 }
