@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useApp } from '../context/AppContext';
 import Layout from '../components/layout/Layout';
 import Badge from '../components/common/Badge';
@@ -63,27 +64,31 @@ export default function ActionsPage() {
     setTimeout(() => setToast(null), toastDismissMs);
   }
 
-  return (
-    <Layout>
-      <div className={styles.page}>
-        {toast && (
-          <div className={styles.toast} role="status" aria-live="polite">
-            <div className={styles.toastHead}>
-              <span className={styles.toastTitle}>{toast.title}</span>
-              <span className={styles.toastPoints}>{toast.pointsLine}</span>
-            </div>
-            {toast.extras?.length > 0 && (
-              <div className={styles.toastExtras}>
-                {toast.extras.map((line, index) => (
-                  <span key={`${line}-${index}`} className={styles.toastExtra}>
-                    {line}
-                  </span>
-                ))}
-              </div>
-            )}
+  const toastNode =
+    toast &&
+    createPortal(
+      <div className={styles.toast} role="status" aria-live="polite">
+        <div className={styles.toastHead}>
+          <span className={styles.toastTitle}>{toast.title}</span>
+          <span className={styles.toastPoints}>{toast.pointsLine}</span>
+        </div>
+        {toast.extras?.length > 0 && (
+          <div className={styles.toastExtras}>
+            {toast.extras.map((line, index) => (
+              <span key={`${line}-${index}`} className={styles.toastExtra}>
+                {line}
+              </span>
+            ))}
           </div>
         )}
+      </div>,
+      document.body
+    );
 
+  return (
+    <Layout>
+      {toastNode}
+      <div className={styles.page}>
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>Ações Sustentáveis ✅</h1>
