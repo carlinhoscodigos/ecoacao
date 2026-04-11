@@ -8,6 +8,7 @@ import Badge from '../components/common/Badge';
 import { getUserLevel, getLevelProgress } from '../services/scoring';
 import { ACTIONS_CATALOG } from '../data/actions';
 import { formatDateTime, pluralize, gerarSiglaCidade } from '../utils/helpers';
+import { ESCOLA_PRINCIPAL_NOME } from '../data/constants';
 import styles from './DashboardPage.module.css';
 
 const CATEGORY_BADGE_COLOR = {
@@ -19,41 +20,110 @@ const CATEGORY_BADGE_COLOR = {
   reutilizacao: 'orange',
 };
 
-/** classGroup como turma: aluno, outra escola ou legado sem participantType. */
-function isTurmaFromClassGroup(user) {
-  const g = user?.classGroup?.trim();
-  if (!g) return false;
-  const pt = user.participantType;
-  if (pt === 'aluno' || pt === 'outra_escola') return true;
-  if (!pt) return true;
-  return false;
+function trimStr(value) {
+  return (value || '').trim();
+}
+
+/** Sigla exibida: cidadeSigla ou derivada do nome da cidade. */
+function resolveCidadeSigla(user) {
+  const raw = trimStr(user?.cidadeSigla);
+  if (raw) return raw.toUpperCase();
+  const cidade = trimStr(user?.cidade);
+  return cidade ? gerarSiglaCidade(cidade) : '';
 }
 
 /**
- * Monta a linha única escola • turma • cidade (sigla), sem separadores vazios.
- * Dados: user.escola, turma (via classGroup quando aplicável), user.cidadeSigla.
+ * Escola da sede: muitos perfis (ex.: professor) podem vir sem escola no payload;
+ * para quem não é "outra escola", assume a escola principal.
+ */
+function resolveEscolaPrincipal(user) {
+  const direct = trimStr(user?.escola || user?.nomeDaEscola);
+  if (direct) return direct;
+  const pt = user?.participantType;
+  if (pt && pt !== 'outra_escola') return ESCOLA_PRINCIPAL_NOME;
+  return '';
+}
+
+function joinMeta(parts) {
+  const cleaned = parts.map((p) => trimStr(p)).filter(Boolean);
+  return cleaned.length > 0 ? cleaned.join(' • ') : null;
+}
+
+/**
+ * Linha abaixo do nome: escola • contexto por tipo • cidade (sigla).
+ * Compatível com cadastros antigos e API/local.
  */
 function buildUserMetaLine(user) {
-  const escola = (user?.escola || user?.nomeDaEscola || '').trim();
-  const siglaRaw = (user?.cidadeSigla || '').trim();
-  const sigla = siglaRaw.toUpperCase() || (user?.cidade ? gerarSiglaCidade(user.cidade) : '');
-  const turmaVal = isTurmaFromClassGroup(user) ? (user?.classGroup || '').trim() : '';
+  if (!user) return null;
 
-  if (turmaVal && !escola && !sigla) {
-    return `Turma: ${turmaVal}`;
-  }
-  if (sigla && !escola && !turmaVal) {
-    return sigla;
-  }
-  if (escola && !turmaVal && !sigla) {
-    return escola;
+  const pt = user.participantType || '';
+  const sigla = resolveCidadeSigla(user);
+
+  if (pt === 'outra_escola') {
+    const escolaNome = trimStr(user.escola || user.nomeDaEscola);
+    const subtipo = trimStr(user.subtipo);
+    const parts = [];
+    if (escolaNome) parts.push(escolaNome);
+
+    if (subtipo === 'Aluno') {
+      const turma = trimStr(user.turma || user.classGroup);
+      if (turma) parts.push(`Turma ${turma}`);
+    } else if (subtipo === 'Professor(a)') {
+      const mid =
+        trimStr(user.disciplina) ||
+        trimStr(user.classGroup) ||
+        'Professor(a)';
+      parts.push(mid);
+    } else if (subtipo) {
+      parts.push(subtipo);
+    }
+
+    if (sigla) parts.push(sigla);
+    return joinMeta(parts);
   }
 
-  const parts = [];
-  if (escola) parts.push(escola);
-  if (turmaVal) parts.push(`Turma ${turmaVal}`);
-  if (sigla) parts.push(sigla);
-  return parts.length > 0 ? parts.join(' • ') : null;
+  const escola = resolveEscolaPrincipal(user);
+
+  if (pt === 'aluno' || (!pt && trimStr(user.classGroup || user.turma))) {
+    const parts = [];
+    if (escola) parts.push(escola);
+    const turma = trimStr(user.classGroup || user.turma);
+    if (turma) parts.push(`Turma ${turma}`);
+    if (sigla) parts.push(sigla);
+    return joinMeta(parts);
+  }
+
+  if (pt === 'professor') {
+    const disc = trimStr(user.disciplina);
+    const cg = trimStr(user.classGroup);
+    const mid =
+      disc ||
+      (cg && cg !== 'Professor(a)' ? cg : '') ||
+      'Professor(a)';
+    return joinMeta([escola, mid, sigla]);
+  }
+
+  if (pt === 'direcao') {
+    const mid = trimStr(user.cargo) || 'Direção';
+    return joinMeta([escola, mid, sigla]);
+  }
+
+  if (pt === 'administrativo') {
+    const mid = trimStr(user.funcao) || 'Administrativo';
+    return joinMeta([escola, mid, sigla]);
+  }
+
+  if (pt === 'visitante') {
+    const mid = trimStr(user.relacao) || 'Visitante';
+    return joinMeta([escola, mid, sigla]);
+  }
+
+  const turmaLegacy = trimStr(user.classGroup || user.turma);
+  return joinMeta([
+    escola,
+    turmaLegacy ? `Turma ${turmaLegacy}` : '',
+    sigla,
+  ]);
 }
 
 export default function DashboardPage() {
