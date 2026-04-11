@@ -1,10 +1,10 @@
 /**
- * Base URL da API (Tailscale Funnel, localhost, etc.).
- * Defina VITE_API_URL no .env ou .env.local (sem barra no final).
+ * Base URL da API. Defina VITE_API_URL no Vercel (Production) ou em .env.local (dev).
+ * O Vite só expõe variáveis com prefixo VITE_.
  */
-const raw = import.meta.env.VITE_API_URL ?? '';
+export const API_URL = import.meta.env.VITE_API_URL;
 
-export const API_BASE_URL = String(raw).replace(/\/$/, '');
+export const API_BASE_URL = String(API_URL ?? '').replace(/\/$/, '');
 
 /**
  * Monta URL absoluta para um path da API (ex.: "/api/health").
