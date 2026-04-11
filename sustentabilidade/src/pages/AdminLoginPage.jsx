@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '../components/common/Button';
 import { useAdmin } from '../context/AdminContext.jsx';
+import authStyles from './AuthPage.module.css';
 import styles from './AdminLoginPage.module.css';
 
 export default function AdminLoginPage() {
@@ -37,20 +38,27 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <span className={styles.kicker}>Painel administrativo</span>
-          <h1 className={styles.title}>Acesso restrito</h1>
-          <p className={styles.subtitle}>
-            Entre com a conta de administrador para gerenciar usuarios, ranking e relatorios.
-          </p>
+    <div className={authStyles.page}>
+      <div className={authStyles.card} style={{ maxWidth: 460 }}>
+        <div className={authStyles.brand}>
+          <span className={authStyles.brandEmoji}>🌿</span>
+          <h1 className={authStyles.brandName}>Eco Ação</h1>
         </div>
 
-        <form className={styles.form} onSubmit={handleSubmit} noValidate>
-          <label className={styles.field}>
-            <span>E-mail</span>
+        <span className={styles.adminKicker}>Painel administrativo</span>
+        <h2 className={authStyles.heading}>Acesso restrito</h2>
+        <p className={styles.lead}>
+          Entre com a conta de administrador para gerir utilizadores, ranking e relatórios.
+        </p>
+
+        <form className={authStyles.form} onSubmit={handleSubmit} noValidate>
+          <div className={authStyles.field}>
+            <label className={authStyles.label} htmlFor="admin-email">
+              E-mail
+            </label>
             <input
+              id="admin-email"
+              className={[authStyles.input, error ? authStyles.inputError : ''].join(' ')}
               type="email"
               value={form.email}
               onChange={(event) => handle('email', event.target.value)}
@@ -58,32 +66,36 @@ export default function AdminLoginPage() {
               autoComplete="email"
               autoFocus
             />
-          </label>
+          </div>
 
-          <label className={styles.field}>
-            <span>Senha</span>
+          <div className={authStyles.field}>
+            <label className={authStyles.label} htmlFor="admin-password">
+              Senha
+            </label>
             <input
+              id="admin-password"
+              className={[authStyles.input, error ? authStyles.inputError : ''].join(' ')}
               type="password"
               value={form.password}
               onChange={(event) => handle('password', event.target.value)}
-              placeholder="Sua senha administrativa"
+              placeholder="••••••"
               autoComplete="current-password"
             />
-          </label>
+          </div>
 
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={authStyles.errorMsg}>⚠ {error}</p>}
 
           <Button type="submit" fullWidth size="lg" disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar no admin'}
+            {loading ? 'Entrando…' : 'Entrar no admin'}
           </Button>
         </form>
 
-        <div className={styles.footer}>
-          <span>Fluxo normal do aplicativo:</span>
-          <Link to="/login" className={styles.link}>
-            voltar para login de usuarios
+        <p className={authStyles.switch}>
+          <span className={styles.footerNote}>Fluxo normal do aplicativo: </span>
+          <Link to="/login" className={authStyles.link}>
+            voltar ao login de utilizadores
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

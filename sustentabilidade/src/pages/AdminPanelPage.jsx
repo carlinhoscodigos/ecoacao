@@ -5,11 +5,11 @@ import { adminFetch, readJsonOrEmpty } from '../services/adminApi.js';
 import styles from './AdminPanelPage.module.css';
 
 const TAB_ITEMS = [
-  { id: 'overview', label: 'Visao geral' },
-  { id: 'users', label: 'Usuarios' },
+  { id: 'overview', label: 'Visão geral' },
+  { id: 'users', label: 'Utilizadores' },
   { id: 'ranking', label: 'Ranking' },
-  { id: 'reports', label: 'Graficos' },
-  { id: 'settings', label: 'Configuracoes' },
+  { id: 'reports', label: 'Gráficos' },
+  { id: 'settings', label: 'Configurações' },
 ];
 
 const TYPE_LABELS = {
@@ -312,7 +312,11 @@ export default function AdminPanelPage() {
   }
 
   if (loading) {
-    return <div className={styles.loading}>Carregando painel administrativo...</div>;
+    return (
+      <div className={styles.loading}>
+        <span>🌿 A carregar o painel administrativo…</span>
+      </div>
+    );
   }
 
   return (
@@ -320,9 +324,9 @@ export default function AdminPanelPage() {
       <header className={styles.hero}>
         <div>
           <span className={styles.eyebrow}>Painel admin</span>
-          <h1 className={styles.title}>Gestao do Eco Acao</h1>
+          <h1 className={styles.title}>Gestão do Eco Ação</h1>
           <p className={styles.subtitle}>
-            Area separada do aplicativo principal para acompanhar dados, ranking e usuarios.
+            Área administrativa do mesmo produto: dados, ranking e utilizadores.
           </p>
         </div>
 
@@ -405,9 +409,9 @@ export default function AdminPanelPage() {
                     : 'Atualize os campos essenciais com seguranca.'}
                 </p>
               </div>
-              <button type="button" className={styles.closeButton} onClick={closePanels}>
+              <Button type="button" variant="secondary" size="sm" onClick={closePanels}>
                 Fechar
-              </button>
+              </Button>
             </div>
 
             {detailUser && <UserDetails user={detailUser} />}
@@ -515,11 +519,15 @@ function UsersTab({ users, search, setSearch, onView, onEdit, onDelete }) {
                   <td>{ROLE_LABELS[user.role] || user.role}</td>
                   <td>
                     <div className={styles.rowActions}>
-                      <button type="button" onClick={() => onView(user.id)}>Ver</button>
-                      <button type="button" onClick={() => onEdit(user)}>Editar</button>
-                      <button type="button" className={styles.dangerLink} onClick={() => onDelete(user)}>
+                      <Button type="button" size="sm" variant="secondary" onClick={() => onView(user.id)}>
+                        Ver
+                      </Button>
+                      <Button type="button" size="sm" variant="secondary" onClick={() => onEdit(user)}>
+                        Editar
+                      </Button>
+                      <Button type="button" size="sm" variant="danger" onClick={() => onDelete(user)}>
                         Excluir
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>
