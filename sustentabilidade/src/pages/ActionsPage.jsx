@@ -3,7 +3,6 @@ import { useApp } from '../context/AppContext';
 import Layout from '../components/layout/Layout';
 import Badge from '../components/common/Badge';
 import { ACTIONS_CATALOG, CATEGORY_LABELS } from '../data/actions';
-import { CATEGORIES } from '../data/constants';
 import styles from './ActionsPage.module.css';
 
 const CATEGORY_BADGE_COLOR = {
@@ -19,6 +18,7 @@ export default function ActionsPage() {
   const { registerAction, getTodayLogs } = useApp();
   const [filter, setFilter] = useState('all');
   const [feedback, setFeedback] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const todayLogs = getTodayLogs();
   const todayActionIds = todayLogs.map((l) => l.actionId);
@@ -28,14 +28,54 @@ export default function ActionsPage() {
     : ACTIONS_CATALOG.filter((a) => a.category === filter);
 
   async function handleRegister(action) {
-    await registerAction(action);
+    const result = await registerAction(action);
     setFeedback(action.id);
+    if (result) {
+      const messages = [
+        `+${result.pointsEarned} pontos adicionados`,
+        'Acao registrada com sucesso.',
+      ];
+
+      if (result.streakIncreased) {
+        messages.push(
+          `Streak atualizada para ${result.currentStreak} ${result.currentStreak === 1 ? 'dia' : 'dias'}.`
+        );
+      }
+
+      if (result.unlockedAchievements?.length > 0) {
+        const unlocked = result.unlockedAchievements[0];
+        messages.push(`Nova conquista: ${unlocked.icon} ${unlocked.title}.`);
+      }
+
+      if (result.positionGain > 0) {
+        messages.push(
+          `Voce subiu ${result.positionGain} ${result.positionGain === 1 ? 'posicao' : 'posicoes'} no ranking.`
+        );
+      }
+
+      setToast({
+        title: 'Boa acao registrada',
+        messages,
+      });
+    }
     setTimeout(() => setFeedback(null), 2000);
+    setTimeout(() => setToast(null), 2800);
   }
 
   return (
     <Layout>
       <div className={styles.page}>
+        {toast && (
+          <div className={styles.toast} role="status" aria-live="polite">
+            <strong>{toast.title}</strong>
+            <div className={styles.toastMessages}>
+              {toast.messages.map((message) => (
+                <span key={message}>{message}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className={styles.header}>
           <div>
             <h1 className={styles.title}>Ações Sustentáveis ✅</h1>

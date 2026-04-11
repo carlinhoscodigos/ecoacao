@@ -500,9 +500,8 @@
   margin-top: 8px;
 }
 
-.emptyChart {
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
+.chartEmpty {
+  padding: 4px 0 12px;
 }
 
 .loading {

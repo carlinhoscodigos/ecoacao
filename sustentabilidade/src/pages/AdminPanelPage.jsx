@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Button from '../components/common/Button';
+import EmptyState from '../components/common/EmptyState';
 import { useAdmin } from '../context/AdminContext.jsx';
 import { adminFetch, readJsonOrEmpty } from '../services/adminApi.js';
 import styles from './AdminPanelPage.module.css';
@@ -819,7 +820,15 @@ function BarChart({ items, valueKey = 'value' }) {
   const maxValue = Math.max(...items.map((item) => Number(item[valueKey] || 0)), 0);
 
   if (!items.length) {
-    return <p className={styles.emptyChart}>Sem dados suficientes.</p>;
+    return (
+      <div className={styles.chartEmpty}>
+        <EmptyState
+          icon="📊"
+          title="Sem dados suficientes"
+          description="Ainda não há informação para este gráfico."
+        />
+      </div>
+    );
   }
 
   return (
@@ -849,7 +858,15 @@ function DonutChart({ items }) {
   const background = buildChartGradient(items, palette);
 
   if (!items.length) {
-    return <p className={styles.emptyChart}>Sem dados suficientes.</p>;
+    return (
+      <div className={styles.chartEmpty}>
+        <EmptyState
+          icon="📊"
+          title="Sem dados suficientes"
+          description="Ainda não há informação para este gráfico."
+        />
+      </div>
+    );
   }
 
   return (

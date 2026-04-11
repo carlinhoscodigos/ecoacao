@@ -4,10 +4,20 @@ import Layout from '../components/layout/Layout';
 import Avatar from '../components/common/Avatar';
 import ProgressBar from '../components/common/ProgressBar';
 import Button from '../components/common/Button';
+import Badge from '../components/common/Badge';
 import { getUserLevel, getLevelProgress } from '../services/scoring';
 import { ACTIONS_CATALOG } from '../data/actions';
-import { formatDateTime, gerarSiglaCidade } from '../utils/helpers';
+import { formatDateTime, pluralize, gerarSiglaCidade } from '../utils/helpers';
 import styles from './DashboardPage.module.css';
+
+const CATEGORY_BADGE_COLOR = {
+  agua: 'blue',
+  energia: 'yellow',
+  residuos: 'green',
+  transporte: 'teal',
+  alimentacao: 'purple',
+  reutilizacao: 'orange',
+};
 
 /** classGroup como turma: aluno, outra escola ou legado sem participantType. */
 function isTurmaFromClassGroup(user) {
@@ -47,7 +57,13 @@ function buildUserMetaLine(user) {
 }
 
 export default function DashboardPage() {
-  const { currentUser, currentUserTotalPoints, getTodayLogs, getActionById } = useApp();
+  const {
+    currentUser,
+    currentUserTotalPoints,
+    getTodayLogs,
+    getActionById,
+    getCurrentUserInsights,
+  } = useApp();
   const navigate = useNavigate();
 
   const totalPoints = currentUserTotalPoints();
@@ -55,6 +71,10 @@ export default function DashboardPage() {
   const todayPoints = todayLogs.reduce((s, l) => s + l.pointsEarned, 0);
   const levelInfo = getUserLevel(totalPoints);
   const progress = getLevelProgress(totalPoints);
+  const insights = getCurrentUserInsights();
+  const weekly = insights.weekly;
+  const favoriteCategory = insights.favoriteCategory;
+  const achievements = insights.achievements || [];
 
   const recentLogs = [...getTodayLogs()].reverse().slice(0, 5);
   const userMetaLine = buildUserMetaLine(currentUser);
@@ -109,6 +129,37 @@ export default function DashboardPage() {
           />
         </div>
 
+        <div className={styles.duoTopGrid}>
+          <div className={styles.goalCard}>
+            <div className={styles.goalHead}>
+              <div>
+                <h2 className={styles.sectionTitle}>Meta semanal</h2>
+                <p className={styles.goalCopy}>
+                  {weekly.remaining > 0
+                    ? `Faltam ${weekly.remaining} pontos para bater a meta desta semana.`
+                    : 'Meta semanal concluida. Continue acumulando impacto.'}
+                </p>
+              </div>
+              <div className={styles.goalScore}>
+                <strong>{weekly.points}</strong>
+                <span>/ {weekly.goal} pts</span>
+              </div>
+            </div>
+            <ProgressBar value={weekly.progress} max={100} color="primary" showLabel />
+          </div>
+
+          <div className={styles.streakCard}>
+            <div className={styles.streakBadge}>🔥</div>
+            <div className={styles.streakText}>
+              <h2 className={styles.sectionTitle}>Sequencia ativa</h2>
+              <strong>{insights.currentStreak} {pluralize(insights.currentStreak, 'dia seguido', 'dias seguidos')}</strong>
+              <span>
+                Melhor sequencia: {insights.bestStreak} {pluralize(insights.bestStreak, 'dia', 'dias')}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className={styles.levelCard}>
           <div className={styles.levelHeader}>
             <span className={styles.levelIcon}>{levelInfo.icon}</span>
@@ -128,27 +179,82 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div className={styles.duoTopGrid}>
+          <div className={styles.achievementsCard}>
+            <div className={styles.achievementsHead}>
+              <div>
+                <h2 className={styles.sectionTitle}>Conquistas</h2>
+                <p className={styles.achievementCopy}>
+                  {insights.unlockedAchievements.length} de {achievements.length} medalhas desbloqueadas.
+                </p>
+              </div>
+              <div className={styles.achievementStats}>
+                <strong>{insights.unlockedAchievements.length}</strong>
+                <span>desbloqueadas</span>
+              </div>
+            </div>
+            <div className={styles.achievementGrid}>
+              {achievements.map((achievement) => (
+                <AchievementItem key={achievement.id} achievement={achievement} />
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.categoryCard}>
+            <h2 className={styles.sectionTitle}>Comparacao por categorias</h2>
+            <p className={styles.categoryCopy}>
+              {favoriteCategory
+                ? `Seu foco ambiental atual esta em ${favoriteCategory.label.toLowerCase()}.`
+                : 'Seu foco ambiental aparecera aqui apos as primeiras acoes.'}
+            </p>
+            {insights.categoryBreakdown.length === 0 ? (
+              <div className={styles.categoryEmpty}>
+                <p>Comece registrando uma acao de agua ou energia.</p>
+                <Button size="sm" onClick={() => navigate('/acoes')}>
+                  Registrar primeira acao
+                </Button>
+              </div>
+            ) : (
+              <div className={styles.categoryList}>
+                {insights.categoryBreakdown.slice(0, 4).map((item) => (
+                  <div key={item.key} className={styles.categoryRow}>
+                    <span>{item.icon} {item.label}</span>
+                    <strong>{item.value}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className={styles.bottomGrid}>
           <div className={styles.recentCard}>
-            <h2 className={styles.sectionTitle}>⏱ Atividade de hoje</h2>
-            {recentLogs.length === 0 ? (
+            <h2 className={styles.sectionTitle}>⏱ Historico recente</h2>
+            {insights.recentActions.length === 0 ? (
               <div className={styles.emptyMsg}>
                 <span>🌱</span>
-                <p>Nenhuma ação registrada hoje ainda.</p>
+                <p>Comece registrando uma acao de agua ou energia para iniciar seu historico.</p>
                 <Button size="sm" onClick={() => navigate('/acoes')}>
                   Registrar agora
                 </Button>
               </div>
             ) : (
               <ul className={styles.logList}>
-                {recentLogs.map((log) => {
+                {insights.recentActions.map((log) => {
                   const action = getActionById(log.actionId);
                   return (
                     <li key={log.id} className={styles.logItem}>
                       <span className={styles.logIcon}>{action?.icon || '✅'}</span>
                       <div className={styles.logInfo}>
                         <span className={styles.logTitle}>{action?.title || log.actionId}</span>
-                        <span className={styles.logTime}>{formatDateTime(log.createdAt)}</span>
+                        <div className={styles.logMetaRow}>
+                          {log.category && (
+                            <Badge color={CATEGORY_BADGE_COLOR[log.category] || 'gray'}>
+                              {log.categoryLabel || log.category}
+                            </Badge>
+                          )}
+                          <span className={styles.logTime}>{formatDateTime(log.createdAt)}</span>
+                        </div>
                       </div>
                       <span className={styles.logPoints}>+{log.pointsEarned} pts</span>
                     </li>
@@ -160,6 +266,11 @@ export default function DashboardPage() {
 
           <div className={styles.quickActions}>
             <h2 className={styles.sectionTitle}>🚀 Ações rápidas</h2>
+            {recentLogs.length === 0 && (
+              <p className={styles.quickHint}>
+                Dica: comece por uma acao simples de agua, energia ou residuos.
+              </p>
+            )}
             <div className={styles.quickGrid}>
               {ACTIONS_CATALOG.slice(0, 4).map((action) => (
                 <button
@@ -190,6 +301,26 @@ function StatCard({ emoji, label, value, sub, color }) {
       <div className={styles.statLabel}>{label}</div>
       <div className={styles.statValue}>{value}</div>
       <div className={styles.statSub}>{sub}</div>
+    </div>
+  );
+}
+
+function AchievementItem({ achievement }) {
+  return (
+    <div
+      className={[
+        styles.achievementItem,
+        achievement.unlocked ? styles.achievementUnlocked : styles.achievementLocked,
+      ].join(' ')}
+    >
+      <div className={styles.achievementIcon}>{achievement.icon}</div>
+      <div className={styles.achievementBody}>
+        <div className={styles.achievementTopRow}>
+          <strong>{achievement.title}</strong>
+          <span>{achievement.unlocked ? 'Liberada' : 'Bloqueada'}</span>
+        </div>
+        <p>{achievement.description}</p>
+      </div>
     </div>
   );
 }

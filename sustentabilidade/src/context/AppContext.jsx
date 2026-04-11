@@ -12,6 +12,8 @@ import {
   clearCurrentUser,
 } from '../services/storage';
 import { buildRanking } from '../services/scoring';
+import { getUserInsights } from '../services/gamification.js';
+import { getNewlyUnlockedAchievements } from '../services/achievements.js';
 import {
   apiFetch,
   readJsonOrEmpty,
@@ -278,6 +280,10 @@ export function AppProvider({ children }) {
 
   async function registerAction(action) {
     if (!currentUser) return;
+    const previousLogs = getUserLogs(currentUser.id);
+    const previousRanking = [...ranking];
+    const previousTotalPoints = currentUserTotalPoints();
+    const previousInsights = getUserInsights(previousLogs);
     if (hasApiConfigured()) {
       const res = await apiFetch('/api/actions/register', {
         method: 'POST',
@@ -285,8 +291,20 @@ export function AppProvider({ children }) {
       });
       const data = await readJsonOrEmpty(res);
       if (!res.ok) return null;
+      const nextLogs = [...previousLogs, data.log];
+      const nextInsights = getUserInsights(nextLogs);
       await refreshApi();
-      return data.log;
+      const nextRanking = await fetchRankingSnapshot();
+      return buildActionFeedback({
+        log: data.log,
+        action,
+        previousRanking,
+        nextRanking,
+        currentUserId: currentUser.id,
+        previousTotalPoints,
+        previousInsights,
+        nextInsights,
+      });
     }
     const log = {
       id: generateId(),
@@ -295,9 +313,21 @@ export function AppProvider({ children }) {
       pointsEarned: action.points,
       createdAt: new Date().toISOString(),
     };
+    const nextLogs = [...previousLogs, log];
+    const nextInsights = getUserInsights(nextLogs);
     addLog(log);
     refreshLocal();
-    return log;
+    const nextRanking = buildRanking();
+    return buildActionFeedback({
+      log,
+      action,
+      previousRanking,
+      nextRanking,
+      currentUserId: currentUser.id,
+      previousTotalPoints,
+      previousInsights,
+      nextInsights,
+    });
   }
 
   async function logout() {
@@ -343,6 +373,23 @@ export function AppProvider({ children }) {
     return ACTIONS_CATALOG.find((a) => a.id === actionId);
   }
 
+  function getCurrentUserInsights() {
+    if (!currentUser) {
+      return getUserInsights([]);
+    }
+    return getUserInsights(getUserLogs(currentUser.id));
+  }
+
+  async function fetchRankingSnapshot() {
+    if (!hasApiConfigured()) {
+      return buildRanking();
+    }
+
+    const rankRes = await apiFetch('/api/ranking/global');
+    const rankData = await readJsonOrEmpty(rankRes);
+    return rankData.ranking || [];
+  }
+
   return (
     <AppContext.Provider
       value={{
@@ -362,11 +409,50 @@ export function AppProvider({ children }) {
         getUserTotalPoints,
         currentUserTotalPoints,
         getActionById,
+        getCurrentUserInsights,
       }}
     >
       {children}
     </AppContext.Provider>
   );
+}
+
+function buildActionFeedback({
+  log,
+  action,
+  previousRanking,
+  nextRanking,
+  currentUserId,
+  previousTotalPoints,
+  previousInsights,
+  nextInsights,
+}) {
+  const previousPosition = previousRanking.findIndex((u) => u.id === currentUserId);
+  const nextPosition = nextRanking.findIndex((u) => u.id === currentUserId);
+  const nextEntry = nextRanking.find((u) => u.id === currentUserId);
+  const unlockedAchievements = getNewlyUnlockedAchievements(
+    previousInsights?.achievements || [],
+    nextInsights?.achievements || []
+  );
+  const streakIncreased =
+    (nextInsights?.currentStreak || 0) > (previousInsights?.currentStreak || 0);
+
+  return {
+    log,
+    actionId: action.id,
+    pointsEarned: action.points,
+    previousPosition: previousPosition >= 0 ? previousPosition + 1 : null,
+    newPosition: nextPosition >= 0 ? nextPosition + 1 : null,
+    positionGain:
+      previousPosition >= 0 && nextPosition >= 0
+        ? Math.max(0, previousPosition - nextPosition)
+        : 0,
+    previousTotalPoints,
+    newTotalPoints: nextEntry?.totalPoints ?? previousTotalPoints + action.points,
+    currentStreak: nextInsights?.currentStreak || 0,
+    streakIncreased,
+    unlockedAchievements,
+  };
 }
 
 /* eslint-disable react-refresh/only-export-components -- hook exposto junto do Provider */

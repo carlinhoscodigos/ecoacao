@@ -18,27 +18,27 @@ const PARTICIPANT_TYPES = [
   { id: 'visitante',     label: 'Visitante / comunidade externa', icon: '🤝' },
 ];
 
-// Campos extras por tipo (escola principal: cidade e nome da escola são automáticos)
+// Campos extras por tipo (escola principal: cidade e escola são automáticos no registo).
+// Regra: campo visível = obrigatório — todos têm validação no submit.
 const EXTRA_FIELDS_CONFIG = {
   aluno: [
     {
       key: 'classGroup',
       label: 'Turma',
       placeholder: 'Ex: 9A, Turma 2',
-      required: true,
     },
   ],
   professor: [
-    { key: 'disciplina', label: 'Disciplina (opcional)', placeholder: 'Ex: Matemática, Ciências', required: false },
+    { key: 'disciplina', label: 'Disciplina', placeholder: 'Ex: Matemática, Ciências' },
   ],
   direcao: [
-    { key: 'cargo',      label: 'Cargo (opcional)',            placeholder: 'Ex: Diretor(a)',           required: false },
+    { key: 'cargo', label: 'Cargo', placeholder: 'Ex: Diretor(a)' },
   ],
   administrativo: [
-    { key: 'funcao',     label: 'Função / Setor (opcional)',   placeholder: 'Ex: Secretaria',          required: false },
+    { key: 'funcao', label: 'Função / Setor', placeholder: 'Ex: Secretaria' },
   ],
   visitante: [
-    { key: 'relacao',    label: 'Relação com a escola (opcional)', placeholder: 'Ex: Familiar de aluno', required: false },
+    { key: 'relacao', label: 'Relação com a escola', placeholder: 'Ex: Familiar de aluno' },
   ],
 };
 
@@ -98,39 +98,54 @@ export default function RegisterPage() {
     setErrors((e) => ({ ...e, outraEscolaSubtipo: '', classGroup: '' }));
   }
 
+  function fieldErrorMessage(label) {
+    const clean = label.replace(/\s*\([^)]*\)\s*/g, '').trim();
+    return `Preencha ${clean.toLowerCase()}.`;
+  }
+
   async function validate() {
     const e = {};
-    if (!form.name.trim() || form.name.trim().length < 2)
+    if (!form.name.trim() || form.name.trim().length < 2) {
       e.name = 'Digite seu nome completo.';
-    if (!validateEmail(form.email))
+    }
+    if (!validateEmail(form.email)) {
       e.email = 'E-mail inválido.';
-    else if (!(await checkEmailAvailable(form.email)))
+    } else if (!(await checkEmailAvailable(form.email))) {
       e.email = 'Este e-mail já está em uso.';
-    if (!validatePassword(form.password))
+    }
+    if (!validatePassword(form.password)) {
       e.password = 'A senha deve ter pelo menos 6 caracteres.';
-    if (!form.participantType)
+    }
+    if (!form.participantType) {
       e.participantType = 'Selecione seu tipo de participante.';
+    }
 
     if (isOutraEscola(form.participantType)) {
       if (!form.escola?.trim()) {
         e.escola = 'Informe o nome da escola.';
       }
       if (!city?.nome?.trim()) {
-        e.cidade = 'Selecione sua cidade.';
+        e.cidade = 'Selecione sua cidade no mapa ou na lista.';
       }
       if (!form.outraEscolaSubtipo) {
         e.outraEscolaSubtipo = 'Selecione uma opção em “Você é”.';
       }
-      if (form.outraEscolaSubtipo === 'aluno' && !form.classGroup?.trim()) {
+      if (
+        (form.outraEscolaSubtipo === 'aluno' || form.outraEscolaSubtipo === 'professor') &&
+        !form.classGroup?.trim()
+      ) {
         e.classGroup = 'Informe a turma.';
       }
     }
 
-    extraFields.forEach(({ key, label, required }) => {
-      if (required && !form[key]?.trim()) {
-        e[key] = `Informe ${label.replace(' (opcional)', '').toLowerCase()}.`;
-      }
-    });
+    if (form.participantType && !isOutraEscola(form.participantType)) {
+      const fields = EXTRA_FIELDS_CONFIG[form.participantType] || [];
+      fields.forEach(({ key, label }) => {
+        if (!form[key]?.trim()) {
+          e[key] = fieldErrorMessage(label);
+        }
+      });
+    }
 
     return e;
   }
@@ -283,14 +298,7 @@ export default function RegisterPage() {
 
               {(form.outraEscolaSubtipo === 'aluno' || form.outraEscolaSubtipo === 'professor') && (
                 <div className={styles.field}>
-                  <label className={styles.label}>
-                    Turma
-                    {form.outraEscolaSubtipo === 'professor' && (
-                      <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.75rem', marginLeft: 6 }}>
-                        (opcional)
-                      </span>
-                    )}
-                  </label>
+                  <label className={styles.label}>Turma</label>
                   <input
                     className={[styles.input, errors.classGroup ? styles.inputError : ''].join(' ')}
                     type="text"
