@@ -17,9 +17,15 @@ const TYPE_LABELS = {
 };
 
 function getUserMeta(user) {
+  const turma = user.turma?.trim() || user.classGroup?.trim() || null;
+  const tipo =
+    user.participantType === 'outra_escola' && user.subtipo
+      ? `Outra escola — ${user.subtipo}`
+      : TYPE_LABELS[user.participantType] || 'Não informado';
   return {
-    tipo:        TYPE_LABELS[user.participantType] || 'Não informado',
+    tipo,
     escola:      user.escola || user.nomeDaEscola  || 'Não informada',
+    turma,
     cidadeSigla: user.cidadeSigla                  || '--',
   };
 }
@@ -95,11 +101,13 @@ function PodiumSlot({ user, position, isCurrent }) {
   const medals  = { 1: '🥇', 2: '🥈', 3: '🥉' };
   const heights = { 1: 120, 2: 90, 3: 70 };
   const levelInfo = getUserLevel(user.totalPoints || 0);
-  const { escola, cidadeSigla } = getUserMeta(user);
+  const { escola, turma, cidadeSigla } = getUserMeta(user);
 
-  const escolaDisplay = escola !== 'Não informada'
-    ? (cidadeSigla !== '--' ? `${escola} · ${cidadeSigla}` : escola)
-    : null;
+  const podiumParts = [];
+  if (escola !== 'Não informada') podiumParts.push(escola);
+  if (turma) podiumParts.push(`Turma ${turma}`);
+  if (cidadeSigla !== '--') podiumParts.push(cidadeSigla);
+  const escolaDisplay = podiumParts.length > 0 ? podiumParts.join(' · ') : null;
 
   return (
     <div className={[styles.podiumSlot, styles[`pos${position}`], isCurrent ? styles.podiumCurrent : ''].join(' ')}>
@@ -120,11 +128,22 @@ function PodiumSlot({ user, position, isCurrent }) {
 
 // ─── Linha do ranking ──────────────────────────────────────────────────────
 
+function formatTurmaLine(user, turma) {
+  if (!turma) return null;
+  if (user.participantType === 'aluno' || user.participantType === 'outra_escola') {
+    return `Turma ${turma}`;
+  }
+  return turma;
+}
+
 function RankingRow({ user, position, isCurrent }) {
   const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
-  const { tipo, escola, cidadeSigla } = getUserMeta(user);
+  const { tipo, escola, turma, cidadeSigla } = getUserMeta(user);
+  const turmaLine = formatTurmaLine(user, turma);
 
-  const metaParts = [tipo, escola, cidadeSigla].filter((v) => v && v !== '--' && v !== 'Não informada');
+  const metaParts = [tipo, escola, turmaLine, cidadeSigla].filter(
+    (v) => v && v !== '--' && v !== 'Não informada'
+  );
 
   return (
     <div className={[styles.row, isCurrent ? styles.rowCurrent : ''].join(' ')}>

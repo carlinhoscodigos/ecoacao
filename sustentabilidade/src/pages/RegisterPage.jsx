@@ -21,8 +21,12 @@ const PARTICIPANT_TYPES = [
 // cidadeSigla removida daqui — agora é gerada automaticamente da cidade selecionada
 const EXTRA_FIELDS_CONFIG = {
   aluno: [
-    { key: 'classGroup', label: 'Turma',                      placeholder: 'Ex: 9A, Turma 2',         required: true  },
-    { key: 'escola',     label: 'Nome da escola (opcional)',   placeholder: 'Ex: E.E. João Silva',     required: false },
+    {
+      key: 'classGroup',
+      label: 'Turma',
+      placeholder: 'Ex: 9A, Turma 2',
+      required: true,
+    },
   ],
   professor: [
     { key: 'disciplina', label: 'Disciplina (opcional)',       placeholder: 'Ex: Matemática, Ciências', required: false },
@@ -36,10 +40,6 @@ const EXTRA_FIELDS_CONFIG = {
     { key: 'funcao',     label: 'Função / Setor (opcional)',   placeholder: 'Ex: Secretaria',          required: false },
     { key: 'escola',     label: 'Nome da escola (opcional)',   placeholder: 'Ex: E.E. João Silva',     required: false },
   ],
-  outra_escola: [
-    { key: 'escola',     label: 'Nome da escola',              placeholder: 'Ex: E.E. João Silva',     required: true  },
-    { key: 'classGroup', label: 'Turma',                      placeholder: 'Ex: 9A',                  required: true  },
-  ],
   visitante: [
     { key: 'relacao',    label: 'Relação com a escola (opcional)', placeholder: 'Ex: Familiar de aluno', required: false },
     { key: 'escola',     label: 'Nome da escola (opcional)',   placeholder: 'Ex: E.E. João Silva',     required: false },
@@ -48,10 +48,19 @@ const EXTRA_FIELDS_CONFIG = {
 
 // ─── Componente ────────────────────────────────────────────────────────────
 
+/** Subtipo apenas para participantType === outra_escola */
+const OUTRA_ESCOLA_SUBTIPOS = [
+  { id: 'aluno', label: 'Aluno' },
+  { id: 'professor', label: 'Professor(a)' },
+  { id: 'funcionario', label: 'Funcionário(a)' },
+  { id: 'visitante', label: 'Visitante' },
+];
+
 const INITIAL_FORM = {
   name: '', email: '', password: '', participantType: '',
   classGroup: '', disciplina: '', cargo: '', funcao: '',
   escola: '', relacao: '',
+  outraEscolaSubtipo: '',
 };
 
 // city = { nome, codigoIbge } | null
@@ -83,13 +92,22 @@ export default function RegisterPage() {
     setErrors((e) => ({ name: e.name, email: e.email, password: e.password }));
   }
 
-  function validate() {
+  function selectOutraEscolaSubtipo(subId) {
+    setForm((f) => ({
+      ...f,
+      outraEscolaSubtipo: subId,
+      classGroup: subId === 'funcionario' || subId === 'visitante' ? '' : f.classGroup,
+    }));
+    setErrors((e) => ({ ...e, outraEscolaSubtipo: '', classGroup: '' }));
+  }
+
+  async function validate() {
     const e = {};
     if (!form.name.trim() || form.name.trim().length < 2)
       e.name = 'Digite seu nome completo.';
     if (!validateEmail(form.email))
       e.email = 'E-mail inválido.';
-    else if (!checkEmailAvailable(form.email))
+    else if (!(await checkEmailAvailable(form.email)))
       e.email = 'Este e-mail já está em uso.';
     if (!validatePassword(form.password))
       e.password = 'A senha deve ter pelo menos 6 caracteres.';
@@ -104,17 +122,38 @@ export default function RegisterPage() {
       }
     });
 
+    if (form.participantType === 'outra_escola') {
+      if (!form.escola?.trim()) {
+        e.escola = 'Informe o nome da escola.';
+      }
+      if (!form.outraEscolaSubtipo) {
+        e.outraEscolaSubtipo = 'Selecione uma opção em “Você é”.';
+      }
+      if (form.outraEscolaSubtipo === 'aluno' && !form.classGroup?.trim()) {
+        e.classGroup = 'Informe a turma.';
+      }
+    }
+
     return e;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    const errs = validate();
+    const errs = await validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-    registerUser({ ...form, cidade: city });
-    setLoading(false);
-    navigate('/login');
+    try {
+      await registerUser({ ...form, cidade: city });
+      navigate('/login');
+    } catch (err) {
+      if (err.code === 'email_in_use') {
+        setErrors((prev) => ({ ...prev, email: 'Este e-mail já está em uso.' }));
+      } else {
+        setErrors((prev) => ({ ...prev, email: 'Não foi possível cadastrar. Tente novamente.' }));
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -211,7 +250,67 @@ export default function RegisterPage() {
           </div>
 
           {/* ── Campos dinâmicos ── */}
-          {extraFields.length > 0 && (            <div className={styles.extraFields}>
+          {form.participantType === 'outra_escola' && (
+            <div className={styles.extraFields}>
+              <div className={styles.field}>
+                <label className={styles.label}>Nome da escola</label>
+                <input
+                  className={[styles.input, errors.escola ? styles.inputError : ''].join(' ')}
+                  type="text"
+                  placeholder="Ex: E.E. João Silva"
+                  value={form.escola}
+                  onChange={(e) => handle('escola', e.target.value)}
+                />
+                {errors.escola && <span className={styles.error}>{errors.escola}</span>}
+              </div>
+
+              <div className={styles.field}>
+                <label className={styles.label}>Você é:</label>
+                <div className={styles.typeGrid}>
+                  {OUTRA_ESCOLA_SUBTIPOS.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={[
+                        styles.typeCard,
+                        form.outraEscolaSubtipo === t.id ? styles.typeCardSelected : '',
+                      ].join(' ')}
+                      onClick={() => selectOutraEscolaSubtipo(t.id)}
+                    >
+                      <span className={styles.typeLabel}>{t.label}</span>
+                    </button>
+                  ))}
+                </div>
+                {errors.outraEscolaSubtipo && (
+                  <span className={styles.error}>{errors.outraEscolaSubtipo}</span>
+                )}
+              </div>
+
+              {(form.outraEscolaSubtipo === 'aluno' || form.outraEscolaSubtipo === 'professor') && (
+                <div className={styles.field}>
+                  <label className={styles.label}>
+                    Turma
+                    {form.outraEscolaSubtipo === 'professor' && (
+                      <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', fontSize: '0.75rem', marginLeft: 6 }}>
+                        (opcional)
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    className={[styles.input, errors.classGroup ? styles.inputError : ''].join(' ')}
+                    type="text"
+                    placeholder="Ex: 9A"
+                    value={form.classGroup}
+                    onChange={(e) => handle('classGroup', e.target.value)}
+                  />
+                  {errors.classGroup && <span className={styles.error}>{errors.classGroup}</span>}
+                </div>
+              )}
+            </div>
+          )}
+
+          {form.participantType !== 'outra_escola' && extraFields.length > 0 && (
+            <div className={styles.extraFields}>
               {extraFields.map(({ key, label, placeholder }) => (
                 <div key={key} className={styles.field}>
                   <label className={styles.label}>{label}</label>

@@ -27,8 +27,8 @@ export default function ActionsPage() {
     ? ACTIONS_CATALOG
     : ACTIONS_CATALOG.filter((a) => a.category === filter);
 
-  function handleRegister(action) {
-    registerAction(action);
+  async function handleRegister(action) {
+    await registerAction(action);
     setFeedback(action.id);
     setTimeout(() => setFeedback(null), 2000);
   }

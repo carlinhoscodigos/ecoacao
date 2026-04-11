@@ -1,4 +1,5 @@
 import { findUserByEmail } from '../services/storage';
+import { apiFetch, readJsonOrEmpty, hasApiConfigured } from '../services/apiClient.js';
 
 export function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
@@ -16,6 +17,14 @@ export function checkLogin(email, password) {
   return { ok: true, user };
 }
 
-export function checkEmailAvailable(email) {
-  return !findUserByEmail(email);
+export async function checkEmailAvailable(email) {
+  if (!hasApiConfigured()) {
+    return !findUserByEmail(email);
+  }
+  const res = await apiFetch(
+    `/api/auth/check-email?email=${encodeURIComponent(email.trim())}`
+  );
+  const data = await readJsonOrEmpty(res);
+  if (!res.ok) return false;
+  return data.available === true;
 }

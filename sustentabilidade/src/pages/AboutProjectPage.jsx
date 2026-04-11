@@ -7,19 +7,21 @@ import { buildDemoData } from '../services/demo';
 import styles from './AboutProjectPage.module.css';
 
 export default function AboutProjectPage() {
-  const { resetDemo, users, logs, ranking } = useApp();
+  const { resetDemo, users, logs, ranking, stats } = useApp();
   const [confirmReset, setConfirmReset] = useState(false);
 
   function calcAvgActionsPerUser() {
-    if (users.length === 0) return 0;
-    const total = logs.length;
-    return (total / users.length).toFixed(1);
+    const n = stats.userCount || users.length;
+    if (n === 0) return 0;
+    const total = stats.actionCount ?? logs.length;
+    return (total / n).toFixed(1);
   }
 
   function calcAvgPointsPerUser() {
-    if (users.length === 0) return 0;
-    const totalPts = logs.reduce((s, l) => s + l.pointsEarned, 0);
-    return (totalPts / users.length).toFixed(0);
+    const n = stats.userCount || users.length;
+    if (n === 0) return 0;
+    const totalPts = ranking.reduce((s, u) => s + (u.totalPoints || 0), 0);
+    return (totalPts / n).toFixed(0);
   }
 
   return (
@@ -52,7 +54,7 @@ export default function AboutProjectPage() {
               <div className={styles.expGroup} style={{ flex: 1, maxWidth: '100%' }}>
                 <div className={styles.expGroupLabel}>📈 Visão geral</div>
                 <div className={styles.expStat}>
-                  <span className={styles.expNum}>{users.length}</span>
+                  <span className={styles.expNum}>{stats.userCount || users.length}</span>
                   <span className={styles.expLabel}>participantes cadastrados</span>
                 </div>
                 <div className={styles.expStat}>

@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import dotenv from 'dotenv';
 import { createApp } from './app.js';
 import { loadConfig } from './config.js';
+import { getDb } from './db/db.js';
 
 // Carrega backend/.env sempre a partir deste arquivo (não depende do cwd).
 // Assim `node src/server.js` funciona mesmo quando o cwd não é a pasta backend.
@@ -35,6 +36,14 @@ if (!FRONTEND_URL_DEV && isProduction) {
   console.warn(
     '[server] Aviso: FRONTEND_URL_DEV não definido. Chamadas de localhost:5173 não serão aceites pelo CORS.'
   );
+}
+
+try {
+  getDb(config);
+  console.log(`[server] SQLite: ${config.databasePath}`);
+} catch (e) {
+  console.error('[server] Falha ao inicializar base de dados:', e.message);
+  process.exit(1);
 }
 
 const app = createApp(config);

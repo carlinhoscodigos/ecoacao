@@ -1,3 +1,8 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 /**
  * Normaliza URL de origem (trim, sem barra final — o header Origin nunca traz barra).
  */
@@ -44,6 +49,25 @@ export function loadConfig() {
 
   const allowedOrigins = buildAllowedOrigins(FRONTEND_URL_DEV, FRONTEND_URL_PROD);
 
+  const defaultDbPath = path.join(__dirname, '..', 'data', 'ecoacao.db');
+  const databasePath = process.env.DATABASE_PATH
+    ? path.resolve(process.env.DATABASE_PATH)
+    : defaultDbPath;
+
+  let jwtSecret = process.env.JWT_SECRET?.trim();
+  if (!jwtSecret) {
+    if (isProduction) {
+      throw new Error('JWT_SECRET é obrigatório em produção.');
+    }
+    jwtSecret = 'dev-only-change-me';
+    console.warn(
+      '[config] JWT_SECRET não definido — a usar valor inseguro só para desenvolvimento.'
+    );
+  }
+
+  const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '7d';
+  const importSecret = process.env.IMPORT_SECRET?.trim() || '';
+
   return {
     PORT,
     FRONTEND_URL_DEV,
@@ -51,5 +75,9 @@ export function loadConfig() {
     NODE_ENV,
     isProduction,
     allowedOrigins,
+    databasePath,
+    jwtSecret,
+    jwtExpiresIn,
+    importSecret,
   };
 }

@@ -16,14 +16,14 @@ export default function LoginPage() {
     setError('');
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!form.email.trim() || !form.password) {
       setError('Preencha e-mail e senha.');
       return;
     }
     setLoading(true);
-    const result = loginUser({ email: form.email, password: form.password });
+    const result = await loginUser({ email: form.email, password: form.password });
     setLoading(false);
     if (!result.ok) {
       setError(result.error);
