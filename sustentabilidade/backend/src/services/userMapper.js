@@ -3,6 +3,7 @@
  */
 export function userRowToApi(row) {
   if (!row) return null;
+  const totalPoints = Number(row.pontos_totais || 0) + Number(row.pontos_ajuste || 0);
   return {
     id: String(row.id),
     name: row.nome,
@@ -20,7 +21,7 @@ export function userRowToApi(row) {
     cargo: row.cargo || undefined,
     funcao: row.funcao || undefined,
     relacao: row.relacao || undefined,
-    totalPoints: row.pontos_totais || 0,
+    totalPoints,
     createdAt: row.created_at,
   };
 }

@@ -3,6 +3,7 @@ import { userRowToApi } from '../services/userMapper.js';
 export function createRankingController(config, getDb) {
   const db = () => getDb(config);
   const participantFilter = "COALESCE(role, 'user') <> 'admin'";
+  const effectivePointsSql = 'COALESCE(pontos_totais, 0) + COALESCE(pontos_ajuste, 0)';
 
   return {
     global(req, res) {
@@ -10,14 +11,11 @@ export function createRankingController(config, getDb) {
         .prepare(
           `SELECT * FROM users
            WHERE ${participantFilter}
-           ORDER BY pontos_totais DESC, id ASC`
+           ORDER BY ${effectivePointsSql} DESC, id ASC`
         )
         .all();
 
-      const ranking = rows.map((u) => ({
-        ...userRowToApi(u),
-        totalPoints: u.pontos_totais || 0,
-      }));
+      const ranking = rows.map((u) => userRowToApi(u));
 
       return res.json({ ranking });
     },

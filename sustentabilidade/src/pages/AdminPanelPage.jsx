@@ -33,6 +33,7 @@ function mapError(code) {
     invalid_email: 'Informe um e-mail válido.',
     invalid_name: 'Informe um nome válido.',
     invalid_password: 'A senha deve ter pelo menos 6 caracteres.',
+    invalid_points: 'Informe um total de pontos válido.',
     invalid_role: 'Função inválida.',
     user_not_found: 'Usuário não encontrado.',
     unauthorized: 'Sua sessão admin expirou. Entre novamente.',
@@ -119,6 +120,7 @@ function initialUserForm(user = null) {
     turma: user?.turma || '',
     tipo: user?.participantType || '',
     subtipo: user?.subtipo || '',
+    totalPoints: String(user?.totalPoints ?? 0),
     role: user?.role || 'user',
   };
 }
@@ -275,6 +277,7 @@ export default function AdminPanelPage() {
           turma: editForm.turma,
           tipo: editForm.tipo,
           subtipo: editForm.subtipo,
+          totalPoints: editForm.totalPoints,
           role: editForm.role,
         },
       });
@@ -764,6 +767,16 @@ function UserEditForm({ form, setForm, saving, onCancel, onSubmit }) {
       <label>
         <span>Subtipo</span>
         <input value={form.subtipo} onChange={(event) => setForm((current) => ({ ...current, subtipo: event.target.value }))} />
+      </label>
+      <label>
+        <span>Pontos</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          value={form.totalPoints}
+          onChange={(event) => setForm((current) => ({ ...current, totalPoints: event.target.value }))}
+        />
       </label>
       <label>
         <span>Role</span>

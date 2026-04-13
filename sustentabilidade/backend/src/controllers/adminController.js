@@ -29,6 +29,11 @@ function participantFilter(alias = '') {
   return `COALESCE(${prefix}role, 'user') <> 'admin'`;
 }
 
+function effectivePointsSql(alias = '') {
+  const prefix = alias ? `${alias}.` : '';
+  return `COALESCE(${prefix}pontos_totais, 0) + COALESCE(${prefix}pontos_ajuste, 0)`;
+}
+
 function typeLabel(type) {
   const map = {
     aluno: 'Alunos',
@@ -66,7 +71,7 @@ function getSummary(db) {
     .prepare(
       `SELECT
          COUNT(*) AS totalUsers,
-         COALESCE(SUM(pontos_totais), 0) AS totalPoints,
+         COALESCE(SUM(${effectivePointsSql()}), 0) AS totalPoints,
          SUM(CASE WHEN tipo = 'aluno' THEN 1 ELSE 0 END) AS studentCount,
          SUM(CASE WHEN tipo = 'professor' THEN 1 ELSE 0 END) AS teacherCount,
          SUM(CASE WHEN tipo = 'outra_escola' THEN 1 ELSE 0 END) AS otherSchoolCount
@@ -99,7 +104,7 @@ function getTopUsers(db, limit = 5) {
     .prepare(
       `SELECT * FROM users
        WHERE ${participantFilter()}
-       ORDER BY pontos_totais DESC, nome COLLATE NOCASE ASC
+       ORDER BY ${effectivePointsSql()} DESC, nome COLLATE NOCASE ASC
        LIMIT ?`
     )
     .all(limit)
@@ -163,18 +168,18 @@ function getScoreBreakdown(db) {
        FROM (
          SELECT
            CASE
-             WHEN pontos_totais = 0 THEN '0'
-             WHEN pontos_totais BETWEEN 1 AND 50 THEN '1-50'
-             WHEN pontos_totais BETWEEN 51 AND 100 THEN '51-100'
-             WHEN pontos_totais BETWEEN 101 AND 200 THEN '101-200'
+             WHEN ${effectivePointsSql()} = 0 THEN '0'
+             WHEN ${effectivePointsSql()} BETWEEN 1 AND 50 THEN '1-50'
+             WHEN ${effectivePointsSql()} BETWEEN 51 AND 100 THEN '51-100'
+             WHEN ${effectivePointsSql()} BETWEEN 101 AND 200 THEN '101-200'
              ELSE '200+'
            END AS label,
            COUNT(*) AS value,
            CASE
-             WHEN pontos_totais = 0 THEN 1
-             WHEN pontos_totais BETWEEN 1 AND 50 THEN 2
-             WHEN pontos_totais BETWEEN 51 AND 100 THEN 3
-             WHEN pontos_totais BETWEEN 101 AND 200 THEN 4
+             WHEN ${effectivePointsSql()} = 0 THEN 1
+             WHEN ${effectivePointsSql()} BETWEEN 1 AND 50 THEN 2
+             WHEN ${effectivePointsSql()} BETWEEN 51 AND 100 THEN 3
+             WHEN ${effectivePointsSql()} BETWEEN 101 AND 200 THEN 4
              ELSE 5
            END AS sort_key
          FROM users
@@ -237,7 +242,7 @@ function getRankingRows(db, filters = {}) {
     .prepare(
       `SELECT * FROM users
        ${whereSql}
-       ORDER BY pontos_totais DESC, nome COLLATE NOCASE ASC`
+       ORDER BY ${effectivePointsSql()} DESC, nome COLLATE NOCASE ASC`
     )
     .all(...values);
 }
@@ -290,12 +295,26 @@ function buildUserPayload(existing, body) {
 
   const tipo = body.tipo === undefined ? existing.tipo : trimOrNull(body.tipo);
   const turma = body.turma === undefined ? existing.turma : trimOrNull(body.turma);
+  const basePoints = Number(existing.pontos_totais || 0);
+  const adjustmentPoints = Number(existing.pontos_ajuste || 0);
   const classGroup =
     body.classGroup !== undefined
       ? trimOrNull(body.classGroup)
       : tipo === 'aluno' || tipo === 'outra_escola'
         ? turma
         : existing.class_group;
+
+  let pontosAjuste = adjustmentPoints;
+  if (body.totalPoints !== undefined) {
+    const rawTotalPoints = String(body.totalPoints).trim();
+    const totalPoints = Number(rawTotalPoints);
+    if (!rawTotalPoints || !Number.isInteger(totalPoints) || totalPoints < 0) {
+      const err = new Error('invalid_points');
+      err.statusCode = 400;
+      throw err;
+    }
+    pontosAjuste = totalPoints - basePoints;
+  }
 
   const payload = {
     nome: name,
@@ -309,6 +328,7 @@ function buildUserPayload(existing, body) {
       body.cidadeSigla === undefined ? existing.cidade_sigla : trimOrNull(body.cidadeSigla),
     turma,
     class_group: classGroup,
+    pontos_ajuste: pontosAjuste,
     updated_at: new Date().toISOString(),
   };
 
@@ -450,6 +470,7 @@ export function createAdminController(config, getDb) {
                  cidade_sigla = @cidade_sigla,
                  turma = @turma,
                  class_group = @class_group,
+                 pontos_ajuste = @pontos_ajuste,
                  updated_at = @updated_at
              WHERE id = @id`
           )

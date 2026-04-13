@@ -377,7 +377,10 @@ export function AppProvider({ children }) {
     if (!currentUser) {
       return getUserInsights([]);
     }
-    return getUserInsights(getUserLogs(currentUser.id));
+    const totalPoints = hasApiConfigured()
+      ? currentUserTotalPoints()
+      : null;
+    return getUserInsights(getUserLogs(currentUser.id), undefined, totalPoints);
   }
 
   async function fetchRankingSnapshot() {

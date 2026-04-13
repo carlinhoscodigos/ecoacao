@@ -118,9 +118,12 @@ export function getFavoriteCategory(logs) {
   return getCategoryBreakdown(logs)[0] || null;
 }
 
-export function getUserInsights(logs, weeklyGoal = DEFAULT_WEEKLY_GOAL) {
+export function getUserInsights(logs, weeklyGoal = DEFAULT_WEEKLY_GOAL, totalPointsOverride = null) {
   const totalActions = logs.length;
-  const totalPoints = logs.reduce((sum, log) => sum + log.pointsEarned, 0);
+  const totalPoints =
+    totalPointsOverride == null
+      ? logs.reduce((sum, log) => sum + log.pointsEarned, 0)
+      : Number(totalPointsOverride);
   const currentStreak = getCurrentStreak(logs);
   const bestStreak = getBestStreak(logs);
   const achievementsData = getAchievementsForUser({
