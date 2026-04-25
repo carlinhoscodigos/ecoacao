@@ -4,6 +4,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://desktop-95s8v63.tailb652ef.ts.net/api/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

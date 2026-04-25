@@ -1,16 +1,13 @@
 /**
- * Base URL da API. Defina VITE_API_URL no Vercel (Production) ou em .env.local (dev).
- * O Vite só expõe variáveis com prefixo VITE_.
+ * Em producao, a API usa o mesmo dominio do site e a Vercel faz proxy de /api
+ * para o backend Tailscale. Isso evita o aviso de acesso a rede local do browser.
+ * Em dev, VITE_API_URL ainda pode apontar diretamente para o backend.
  */
-export const API_URL = String(import.meta.env.VITE_API_URL ?? '').trim();
-export const API_BASE_URL = API_URL.replace(/\/$/, '');
 export const IS_PRODUCTION = import.meta.env.PROD;
-
-function assertProductionApiConfigured() {
-  if (!API_BASE_URL && IS_PRODUCTION) {
-    throw new Error('VITE_API_URL precisa estar definido na build de producao.');
-  }
-}
+export const API_URL = IS_PRODUCTION
+  ? ''
+  : String(import.meta.env.VITE_API_URL ?? '').trim();
+export const API_BASE_URL = API_URL.replace(/\/$/, '');
 
 /**
  * Monta URL absoluta para um path da API (ex.: "/api/health").
@@ -18,7 +15,6 @@ function assertProductionApiConfigured() {
 export function apiUrl(path) {
   const p = path.startsWith('/') ? path : `/${path}`;
   if (!API_BASE_URL) {
-    assertProductionApiConfigured();
     return p;
   }
   return `${API_BASE_URL}${p}`;

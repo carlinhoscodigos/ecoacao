@@ -21,8 +21,8 @@ export default function CityCombobox({ value, onChange, error, disabled }) {
 
   // Sincroniza se o valor externo mudar (ex: geolocalização)
   useEffect(() => {
-    if (value?.nome && value.nome !== query) {
-      setQuery(value.nome);
+    if (value?.nome) {
+      setQuery((current) => (current === value.nome ? current : value.nome));
       setResults([]);
       setOpen(false);
     }
