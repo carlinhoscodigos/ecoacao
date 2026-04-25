@@ -1,43 +1,172 @@
 :root {
-  --color-primary: #2d7a3a;
-  --color-primary-light: #3d9e4e;
-  --color-primary-dark: #1a5225;
-  --color-secondary: #1e6b8a;
-  --color-accent: #f5a623;
-  --color-accent-light: #ffc04d;
-  --color-bg: #f0f7f1;
-  --color-bg-card: #ffffff;
-  --color-bg-sidebar: #1a3320;
-  --color-text: #1a2e1d;
-  --color-text-muted: #5a7a60;
-  --color-text-light: #f9fdf9;
-  --color-border: #c8e6cc;
-  --color-success: #27ae60;
-  --color-danger: #e74c3c;
-  --color-warning: #f39c12;
-  --color-ranking-gold: #f5c518;
-  --color-ranking-silver: #b0b8bf;
+  /* ─── Brand · Emerald scale ─────────────────────────────────────────── */
+  --color-emerald-50:  #ecfdf3;
+  --color-emerald-100: #d1fadf;
+  --color-emerald-200: #a6f4c5;
+  --color-emerald-300: #6ce9a6;
+  --color-emerald-400: #32d583;
+  --color-emerald-500: #12b76a;
+  --color-emerald-600: #039855;
+  --color-emerald-700: #027a48;
+  --color-emerald-800: #05603a;
+  --color-emerald-900: #054f31;
+
+  /* ─── Brand · Teal accent (secondary) ───────────────────────────────── */
+  --color-teal-50:  #ecfeff;
+  --color-teal-100: #cffafe;
+  --color-teal-300: #67e8f9;
+  --color-teal-500: #06b6d4;
+  --color-teal-600: #0891b2;
+  --color-teal-700: #0e7490;
+  --color-teal-800: #155e75;
+
+  /* ─── Brand · Amber accent ──────────────────────────────────────────── */
+  --color-amber-100: #fef3c7;
+  --color-amber-300: #fcd34d;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+
+  /* ─── Neutrals (surfaces / text) ────────────────────────────────────── */
+  --color-slate-50:  #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
+  /* ─── Semantic ──────────────────────────────────────────────────────── */
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+  --color-warning: #f59e0b;
+  --color-warning-soft: #fef3c7;
+  --color-danger:  #ef4444;
+  --color-danger-soft: #fee2e2;
+  --color-info:    #0ea5e9;
+  --color-info-soft: #e0f2fe;
+
+  /* ─── Brand aliases (compat com nomes antigos) ──────────────────────── */
+  --color-primary:        var(--color-emerald-600);
+  --color-primary-light:  var(--color-emerald-500);
+  --color-primary-lighter:var(--color-emerald-400);
+  --color-primary-dark:   var(--color-emerald-700);
+  --color-primary-darker: var(--color-emerald-800);
+
+  --color-secondary:       var(--color-teal-600);
+  --color-secondary-light: var(--color-teal-500);
+  --color-secondary-dark:  var(--color-teal-800);
+
+  --color-accent:        var(--color-amber-500);
+  --color-accent-light:  var(--color-amber-300);
+  --color-accent-dark:   var(--color-amber-600);
+
+  /* ─── Surfaces ──────────────────────────────────────────────────────── */
+  --color-bg:           #f6faf7;
+  --color-bg-soft:      #eef5f0;
+  --color-bg-card:      #ffffff;
+  --color-bg-muted:     var(--color-slate-50);
+  --color-bg-elevated:  #ffffff;
+  --color-bg-sidebar:   #062e1d;
+  --color-bg-overlay:   rgba(15, 32, 22, 0.55);
+
+  /* ─── Text ──────────────────────────────────────────────────────────── */
+  --color-text:        #0c1f15;
+  --color-text-strong: #06150d;
+  --color-text-muted:  #5b6b62;
+  --color-text-subtle: #8b9a90;
+  --color-text-light:  #f5fbf7;
+  --color-text-on-primary: #ffffff;
+
+  /* ─── Borders ───────────────────────────────────────────────────────── */
+  --color-border:        #d8e4dd;
+  --color-border-strong: #b9cdc2;
+  --color-border-soft:   #e8efea;
+  --color-border-focus:  rgba(3, 152, 85, 0.45);
+
+  /* ─── Ranking medals ────────────────────────────────────────────────── */
+  --color-ranking-gold:   #f4c430;
+  --color-ranking-silver: #c0c8d1;
   --color-ranking-bronze: #cd7f32;
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  /* ─── Brand gradients ───────────────────────────────────────────────── */
+  --gradient-brand: linear-gradient(135deg, var(--color-emerald-600) 0%, var(--color-teal-600) 100%);
+  --gradient-brand-soft: linear-gradient(135deg, var(--color-emerald-50) 0%, var(--color-teal-50) 100%);
+  --gradient-hero: radial-gradient(120% 110% at 0% 0%, rgba(6, 182, 212, 0.18) 0%, transparent 55%),
+                   radial-gradient(110% 110% at 100% 0%, rgba(16, 185, 129, 0.20) 0%, transparent 60%),
+                   radial-gradient(140% 110% at 50% 100%, rgba(245, 158, 11, 0.12) 0%, transparent 65%),
+                   linear-gradient(135deg, #042f1f 0%, #064e3b 45%, #134e4a 100%);
+  --gradient-aurora: radial-gradient(80% 60% at 20% 10%, rgba(110, 231, 183, 0.45), transparent 60%),
+                     radial-gradient(80% 60% at 90% 0%, rgba(103, 232, 249, 0.40), transparent 60%),
+                     radial-gradient(80% 70% at 50% 100%, rgba(252, 211, 77, 0.25), transparent 60%);
+
+  /* ─── Radii ─────────────────────────────────────────────────────────── */
+  --radius-xs:  4px;
+  --radius-sm:  8px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+  --radius-xl:  28px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 4px rgba(0,0,0,0.07);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.10);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+  /* ─── Shadows (layered, soft) ───────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(15, 32, 22, 0.05);
+  --shadow-sm: 0 1px 3px rgba(15, 32, 22, 0.06), 0 1px 2px rgba(15, 32, 22, 0.04);
+  --shadow-md: 0 6px 16px -8px rgba(15, 32, 22, 0.18), 0 2px 6px rgba(15, 32, 22, 0.05);
+  --shadow-lg: 0 24px 48px -16px rgba(15, 32, 22, 0.22), 0 8px 16px -8px rgba(15, 32, 22, 0.10);
+  --shadow-xl: 0 40px 80px -24px rgba(15, 32, 22, 0.30), 0 16px 32px -16px rgba(15, 32, 22, 0.14);
+  --shadow-glow: 0 0 0 3px rgba(3, 152, 85, 0.15);
+  --shadow-focus: 0 0 0 4px rgba(3, 152, 85, 0.25);
 
-  --font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
-  --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
+  /* ─── Typography ────────────────────────────────────────────────────── */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-family: var(--font-sans);
 
-  --transition: 0.2s ease;
-  --nav-height: 64px;
-  --sidebar-width: 220px;
+  --font-size-xs:    0.75rem;   /* 12 */
+  --font-size-sm:    0.875rem;  /* 14 */
+  --font-size-base:  1rem;      /* 16 */
+  --font-size-lg:    1.125rem;  /* 18 */
+  --font-size-xl:    1.25rem;   /* 20 */
+  --font-size-2xl:   1.5rem;    /* 24 */
+  --font-size-3xl:   1.875rem;  /* 30 */
+  --font-size-4xl:   2.25rem;   /* 36 */
+  --font-size-5xl:   3rem;      /* 48 */
+
+  --leading-tight: 1.2;
+  --leading-snug:  1.35;
+  --leading-base:  1.55;
+  --leading-loose: 1.75;
+
+  --tracking-tight: -0.02em;
+  --tracking-tighter: -0.03em;
+  --tracking-wide: 0.02em;
+  --tracking-widest: 0.08em;
+
+  /* ─── Spacing scale ─────────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ─── Motion ────────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --transition: var(--duration-base) var(--ease-out);
+
+  /* ─── Layout ────────────────────────────────────────────────────────── */
+  --nav-height: 68px;
+  --sidebar-width: 240px;
+  --container-max: 1180px;
+  --container-narrow: 720px;
 }
